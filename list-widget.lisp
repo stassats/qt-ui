@@ -28,7 +28,10 @@
   ((items :initform nil
           :reader items)
    (editable :initform nil
-             :initarg :editable))
+             :initarg :editable)
+   (header :initarg :header
+           :initform nil
+           :accessor header))
   (:metaclass qt-class)
   (:slots ("listItemChanged(QStandardItem*)" list-widget-item-changed))
   (:qt-superclass "QStandardItemModel"))
@@ -58,7 +61,7 @@
   (loop for i from 0
         for header in header
         do
-        (#_setHeaderData model i (#_Qt::Horizontal) header)) )
+        (#_setHeaderData model i (#_Qt::Horizontal) header)))
 
 (defmethod initialize-instance :after ((model list-model)
                                        &key parent
@@ -180,15 +183,18 @@
                       (if link-key
                           (mapcar link-key processed-items)
                           processed-items)))
-        (loop for object in processed-items
-              for row = (alexandria:ensure-list object)
-              for row-number from current-row-number
-              nconc (loop for column-number from 0
-                          for object in row
-                          for item = (make-item object description editable)
-                          do (#_setItem model row-number column-number
-                                        item)
-                          collect item))))))
+        (prog1
+            (loop for object in processed-items
+                  for row = (alexandria:ensure-list object)
+                  for row-number from current-row-number
+                  nconc (loop for column-number from 0
+                              for object in row
+                              for item = (make-item object description editable)
+                              do (#_setItem model row-number column-number
+                                            item)
+                              collect item))
+          (when (header model)
+            (set-header model (header model))))))))
 
 (defmethod remove-item (item (view view-widget))
   (remove-item item (model view)))
