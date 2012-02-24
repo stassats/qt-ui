@@ -31,4 +31,5 @@
    :edit-object
    :single-selected
    :scroll-to-item
-   :list-append))
+   :list-append
+   :selected-rows))

@@ -233,7 +233,7 @@
   (access-model-item (items widget) model-index))
 
 (defun list-widget-view-item (list-widget item)
-  (let ((item (print (item-from-model-index item list-widget))))
+  (let ((item (item-from-model-index item list-widget)))
     (typecase item
       (model-item
        (when (viewable item)
