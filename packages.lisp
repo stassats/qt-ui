@@ -28,8 +28,10 @@
    :combo-box
    :current-item
    :selected-items
-   :edit-object
-   :single-selected
+   :edit-object 
    :scroll-to-item
    :list-append
-   :selected-rows))
+   :selected-rows
+   :display-menu
+   :display-menu-multiple-rows
+   :display-menu-no-rows))

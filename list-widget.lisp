@@ -86,7 +86,8 @@
    ("deleteItems()" delete-items)
    ("editObject()" list-widget-edit-object)
    ("editItem()" edit-item)
-   ("viewItem(QModelIndex)" list-widget-view-item))
+   ("viewItem(QModelIndex)" list-widget-view-item)
+   ("displayMenu(QPoint)" list-widget-display-menu))
   (:override ("dropEvent" drop-event)
              ("startDrag" start-drag)
              ("dragEnterEvent" drag-enter-event)
@@ -104,6 +105,9 @@
   (#_setSelectionBehavior widget (#_QAbstractItemView::SelectItems))
   (#_setResizeMode (#_header widget) (#_QHeaderView::ResizeToContents))
   (#_setEditTriggers widget (#_QAbstractItemView::NoEditTriggers))
+  (#_setContextMenuPolicy widget (#_Qt::CustomContextMenu))
+  (connect widget "customContextMenuRequested(QPoint)"
+           widget "displayMenu(const QPoint &)")
   (when editable
     (#_setDefaultDropAction widget (#_Qt::MoveAction))
     (#_setDragDropMode widget (#_QAbstractItemView::InternalMove))))
@@ -115,6 +119,15 @@
 
 (defgeneric edit-object (list-widget item)
   (:method ((list-widget t) (item t))))
+
+(defgeneric display-menu (list-widget item)
+  (:method ((list-widget t) (item t))))
+
+(defgeneric display-menu-multiple-rows (list-widget items)
+  (:method ((list-widget t) (items t))))
+
+(defgeneric display-menu-no-rows (list-widget)
+  (:method ((list-widget t))))
 
 ;;;
 
@@ -256,6 +269,18 @@
   (let ((list-item (nthcdr (#_row item) (items widget))))
     (when (stringp (car list-item))
       (setf (car list-item) (#_text item)))))
+
+(defun list-widget-display-menu (widget point)
+  (let* ((selected (selected-items widget))
+         (length (length selected))
+         (menu (cond ((= length 1)
+                      (display-menu widget (car selected)))
+                     ((> length 1)
+                      (display-menu-multiple-rows widget selected))
+                     (t
+                      (display-menu-no-rows widget)))))
+    (when menu
+      (#_exec menu (#_mapToGlobal widget point)))))
 
 (defun selected-items (list-widget)
   (loop for item in (#_selectedIndexes list-widget)
