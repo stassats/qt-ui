@@ -66,8 +66,7 @@
 (defmethod initialize-instance :after ((model list-model)
                                        &key parent
                                             items key link-key editable
-                                            (description #'object-description)
-                                            header)
+                                            (description #'object-description))
   (new-instance model parent)
   (when items
     (setf (items model :key key :link-key link-key
@@ -75,8 +74,7 @@
           items))
   (when editable
     (connect model "itemChanged(QStandardItem*)"
-             model "listItemChanged(QStandardItem*)"))
-  (set-header model header))
+             model "listItemChanged(QStandardItem*)")))
 
 (defclass list-widget (view-widget)
   ()
