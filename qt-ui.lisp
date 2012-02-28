@@ -101,3 +101,8 @@
 
 (defmethod object-description (object &key)
   (princ-to-string object))
+
+(defsetf optimized-call (allow-override-p instance method) (value)
+  `(optimized-call ,allow-override-p ,instance
+     ,(format nil "set~a" (string-capitalize method :end (min 1 (length method))))
+     ,value))
