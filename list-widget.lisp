@@ -9,7 +9,7 @@
 
 (defmethod initialize-instance :after ((widget view-widget)
                                        &key parent
-                                            items key link-key
+                                            items key row-key
                                             (description #'object-description)
                                             editable
                                             header)
@@ -17,7 +17,7 @@
   (let ((model (make-instance 'list-model
                               :items items
                               :key key
-                              :link-key link-key
+                              :row-key row-key
                               :description description
                               :editable editable
                               :header header)))
@@ -65,11 +65,12 @@
 
 (defmethod initialize-instance :after ((model list-model)
                                        &key parent
-                                            items key link-key editable
+                                            items key row-key editable
                                             (description #'object-description))
   (new-instance model parent)
   (when items
-    (setf (items model :key key :link-key link-key
+    (setf (items model :key key
+                       :row-key row-key
                        :description description)
           items))
   (when editable
@@ -77,7 +78,9 @@
              model "listItemChanged(QStandardItem*)")))
 
 (defclass list-widget (view-widget)
-  ()
+  ((selection-behavior :initarg :selection-behavior
+                       :initform :items
+                       :accessor selection-behavior))
   (:metaclass qt-class)
   (:qt-superclass "QTreeView")
   (:slots
@@ -91,16 +94,25 @@
              ("dragEnterEvent" drag-enter-event)
              ("dragMoveEvent" drag-move-event)))
 
+(defun set-selection-behavior (list-widget behavior)
+  (setf (#_selectionBehavior list-widget)
+        (ecase behavior
+          (:items (#_QAbstractItemView::SelectItems))
+          (:rows (#_QAbstractItemView::SelectRows))
+          (:columns (#_QAbstractItemView::SelectColumns)))
+        (selection-behavior list-widget) behavior))
+
 (defmethod initialize-instance :after ((widget list-widget)
                                        &key editable expandable
-                                            header)
+                                            header
+                                            (selection-behavior :items))
   (connect widget "doubleClicked(QModelIndex)"
            widget "viewItem(QModelIndex)")
   (unless expandable
     (#_setRootIsDecorated widget nil))
   (unless header
     (#_setHeaderHidden widget t))
-  (#_setSelectionBehavior widget (#_QAbstractItemView::SelectItems))
+  (set-selection-behavior widget selection-behavior)
   (#_setResizeMode (#_header widget) (#_QHeaderView::ResizeToContents))
   (#_setEditTriggers widget (#_QAbstractItemView::NoEditTriggers))
   (#_setContextMenuPolicy widget (#_Qt::CustomContextMenu))
@@ -147,6 +159,8 @@
   (clear-list-model model)
   (apply 'list-append model items args))
 
+(defgeneric list-append (widget items &rest args))
+
 (defmethod list-append ((widget view-widget) items
                         &rest args &key &allow-other-keys)
   (apply 'list-append (model widget) items args))
@@ -182,28 +196,26 @@
       (%make-item object nil description editable)))
 
 (defmethod list-append ((model list-model) items
-                        &key key link-key (description #'object-description))
+                        &key key row-key (description #'object-description))
   (when items
     (with-slots (editable (current-items items)) model
-      (let ((processed-items (if key
-                                 (mapcar key items)
-                                 (copy-tree items)))
+      (let ((key (or key #'identity))
+            (row-key (or row-key #'identity))
             (current-row-number (length current-items)))
         (setf current-items
-              (append current-items
-                      (if link-key
-                          (mapcar link-key processed-items)
-                          processed-items)))
+              (append current-items items))
         (prog1
-            (loop for object in processed-items
-                  for row = (alexandria:ensure-list object)
+            (loop for object in items
+                  for row = (alexandria:ensure-list (funcall row-key object))
                   for row-number from current-row-number
-                  nconc (loop for column-number from 0
-                              for object in row
-                              for item = (make-item object description editable)
-                              do (#_setItem model row-number column-number
-                                            item)
-                              collect item))
+                  nconc
+                  (loop for column-number from 0
+                        for object in row
+                        for item = (make-item (funcall key object)
+                                              description editable)
+                        do (#_setItem model row-number column-number
+                                      item)
+                        collect item))
           (when (header model)
             (set-header model (header model))))))))
 
@@ -247,16 +259,21 @@
         finally (return object)))
 
 (defun item-from-model-index (model-index widget)
-  (access-model-item (items widget) model-index))
+  (ecase (selection-behavior widget)
+    (:items (access-model-item (items widget) model-index))
+    (:rows (nth (#_row model-index) (items widget)))))
+
+(defun object-from-item (item)
+  (typecase item
+      (model-item
+       (when (viewable item)
+         (object item)))
+      (t
+       item)))
 
 (defun list-widget-view-item (list-widget item)
   (let ((item (item-from-model-index item list-widget)))
-    (typecase item
-      (model-item
-       (when (viewable item)
-         (view-item list-widget (object item))))
-      (t
-       (view-item list-widget item)))))
+    (view-item list-widget (object-from-item item))))
 
 (defun list-widget-edit-object (list-widget)
   (let ((item (single-selected list-widget)))
@@ -281,8 +298,17 @@
       (#_exec menu (#_mapToGlobal widget point)))))
 
 (defun selected-items (list-widget)
-  (loop for item in (#_selectedIndexes list-widget)
-        collect (item-from-model-index item list-widget)))
+  (let ((indexes (#_selectedIndexes list-widget)))
+    (ecase (selection-behavior list-widget)
+      (:items
+       (loop for index in indexes
+             collect (item-from-model-index index list-widget)))
+      (:rows
+       (loop for index in indexes
+             for previous = -1 then row
+             for row = (#_row index)
+             when (/= previous row)
+             collect (nth row (items list-widget)))))))
 
 (defun selected-rows (list-widget)
   (loop for item in (#_selectedIndexes list-widget)
