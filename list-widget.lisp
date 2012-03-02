@@ -95,12 +95,12 @@
              ("dragMoveEvent" drag-move-event)))
 
 (defun set-selection-behavior (list-widget behavior)
-  (setf (#_selectionBehavior list-widget)
-        (ecase behavior
-          (:items (#_QAbstractItemView::SelectItems))
-          (:rows (#_QAbstractItemView::SelectRows))
-          (:columns (#_QAbstractItemView::SelectColumns)))
-        (selection-behavior list-widget) behavior))
+  (#_setSelectionBehavior list-widget
+                          (ecase behavior
+                            (:items (#_QAbstractItemView::SelectItems))
+                            (:rows (#_QAbstractItemView::SelectRows))
+                            (:columns (#_QAbstractItemView::SelectColumns))))
+  (setf (selection-behavior list-widget) behavior))
 
 (defmethod initialize-instance :after ((widget list-widget)
                                        &key editable expandable
