@@ -106,3 +106,16 @@
   `(optimized-call ,allow-override-p ,instance
      ,(format nil "set~a" (string-capitalize method :end (min 1 (length method))))
      ,value))
+
+
+(defmacro with-signals-blocked (objects &body body)
+  "Execute BODY while signals emitted by OBJECT are blocked."
+  (let ((vars (loop repeat (length objects)
+                    collect (gensym))))
+    `(let ,(mapcar #'list vars objects)
+       (unwind-protect (progn ,@(loop for var in vars
+                                      collect `(optimized-call nil ,var "blockSignals" t))
+                              ,@body)
+         (progn
+           ,@(loop for var in vars
+                   collect `(optimized-call nil ,var "blockSignals" nil)))))))
