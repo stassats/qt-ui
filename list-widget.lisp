@@ -198,26 +198,27 @@
 (defmethod list-append ((model list-model) items
                         &key key row-key (description #'object-description))
   (when items
-    (with-slots (editable (current-items items)) model
-      (let ((key (or key #'identity))
-            (row-key (or row-key #'identity))
-            (current-row-number (length current-items)))
-        (setf current-items
-              (append current-items items))
-        (prog1
-            (loop for object in items
-                  for row = (alexandria:ensure-list (funcall row-key object))
-                  for row-number from current-row-number
-                  nconc
-                  (loop for column-number from 0
-                        for object in row
-                        for item = (make-item (funcall key object)
-                                              description editable)
-                        do (#_setItem model row-number column-number
-                                      item)
-                        collect item))
-          (when (header model)
-            (set-header model (header model))))))))
+    (with-signals-blocked (model)
+     (with-slots (editable (current-items items)) model
+       (let ((key (or key #'identity))
+             (row-key (or row-key #'identity))
+             (current-row-number (length current-items)))
+         (setf current-items
+               (append current-items items))
+         (prog1
+             (loop for object in items
+                   for row = (alexandria:ensure-list (funcall row-key object))
+                   for row-number from current-row-number
+                   nconc
+                   (loop for column-number from 0
+                         for object in row
+                         for item = (make-item (funcall key object)
+                                               description editable)
+                         do (#_setItem model row-number column-number
+                                       item)
+                         collect item))
+           (when (header model)
+             (set-header model (header model)))))))))
 
 (defmethod remove-item (item (view view-widget))
   (remove-item item (model view)))

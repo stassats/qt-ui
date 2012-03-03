@@ -34,4 +34,5 @@
    :selected-rows
    :display-menu
    :display-menu-multiple-rows
-   :display-menu-no-rows))
+   :display-menu-no-rows
+   :make-item))
