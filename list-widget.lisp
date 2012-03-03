@@ -44,6 +44,9 @@
   ((object :initarg :object
            :initform nil
            :accessor object)
+   (text :initarg :text
+         :initform nil
+         :accessor text)
    (decoration :initarg :decoration
                :initform nil
                :accessor decoration)
@@ -166,7 +169,9 @@
   (apply 'list-append (model widget) items args))
 
 (defun %make-item (object decoration description editable)
-  (let ((item (#_new QStandardItem (funcall description object))))
+  (let ((item (#_new QStandardItem (etypecase description
+                                     (function (funcall description object))
+                                     (string description)))))
     (when decoration
       (#_setData item decoration (#_Qt::DecorationRole)))
     (when editable
@@ -189,7 +194,9 @@
 (defun make-item (object description editable)
   (if (typep object 'model-item)
       (let ((item (%make-item (object object) (decoration object)
-                   description editable)))
+                   (or (text object)
+                       description)
+                   editable)))
         (when (children object)
           (add-item-children object item editable description))
         item)
@@ -273,8 +280,9 @@
        item)))
 
 (defun list-widget-view-item (list-widget item)
-  (let ((item (item-from-model-index item list-widget)))
-    (view-item list-widget (object-from-item item))))
+  (let ((object (object-from-item (item-from-model-index item list-widget))))
+    (when object
+      (view-item list-widget object))))
 
 (defun list-widget-edit-object (list-widget)
   (let ((item (single-selected list-widget)))
