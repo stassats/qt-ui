@@ -35,4 +35,7 @@
    :display-menu
    :display-menu-multiple-rows
    :display-menu-no-rows
-   :make-item))
+   :link
+   :clickable-label
+   :view-link
+   :mouse-release-event))

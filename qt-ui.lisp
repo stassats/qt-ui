@@ -102,3 +102,5 @@
 (defmethod object-description (object &key)
   (princ-to-string object))
 
+;;
+(defgeneric mouse-release-event (ojbect event))
