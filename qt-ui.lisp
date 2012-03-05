@@ -19,14 +19,16 @@
       (new instance)))
 
 (defun dialog-select-item (text list &key
-                                       (printer #'princ-to-string)
+                                       (description #'object-description)
                                        parent)
   (let* ((dialog (if parent
                      (#_new QDialog parent)
                      (#_new QDialog)))
          (vbox (#_new QVBoxLayout dialog))
          (label (#_new QLabel text))
-         (combo-box (#_new QComboBox))
+         (combo-box (make-instance 'combo-box
+                                   :items list
+                                   :description description))
          (buttons (#_new QDialogButtonBox
                          (enum-or
                           (#_QDialogButtonBox::Ok)
@@ -44,11 +46,9 @@
     (connect buttons "rejected()"
              dialog "close()")
 
-    (dolist (item list)
-      (#_addItem combo-box (funcall printer item)))
     (#_exec dialog)
     (when (plusp (#_result dialog))
-      (nth (#_currentIndex combo-box) list))))
+      (current-item combo-box))))
 
 
 (defun delete-widgets (layout)
