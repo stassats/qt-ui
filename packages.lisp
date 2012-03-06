@@ -38,4 +38,7 @@
    :link
    :clickable-label
    :view-link
-   :mouse-release-event))
+   :mouse-release-event
+   :launch-browser
+   :web-link
+   :url))

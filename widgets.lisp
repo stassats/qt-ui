@@ -35,3 +35,17 @@
   (when (enum= (#_Qt::LeftButton)
                (#_button event))
     (emit-signal clickable-label "clicked()")))
+
+(defclass web-link (clickable-label)
+  ((url :initarg :url
+        :initform nil
+        :reader url))
+  (:metaclass qt-class)
+  (:qt-superclass "QLabel")
+  (:slots ("viewLink()" (lambda (link)
+                          (print link)
+                          (launch-browser (url link))))))
+
+(defmethod initialize-instance :after ((instance web-link) &key)
+  (connect instance "clicked()"
+           instance "viewLink()"))
