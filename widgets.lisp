@@ -43,7 +43,6 @@
   (:metaclass qt-class)
   (:qt-superclass "QLabel")
   (:slots ("viewLink()" (lambda (link)
-                          (print link)
                           (launch-browser (url link))))))
 
 (defmethod initialize-instance :after ((instance web-link) &key)
