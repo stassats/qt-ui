@@ -311,7 +311,7 @@
     (ecase (selection-behavior list-widget)
       (:items
        (loop for index in indexes
-             collect (item-from-model-index index list-widget)))
+             collect (object-from-item (item-from-model-index index list-widget))))
       (:rows
        (loop for index in indexes
              for previous = -1 then row
