@@ -98,17 +98,29 @@
              ("dragMoveEvent" drag-move-event)))
 
 (defun set-selection-behavior (list-widget behavior)
-  (#_setSelectionBehavior list-widget
-                          (ecase behavior
-                            (:items (#_QAbstractItemView::SelectItems))
-                            (:rows (#_QAbstractItemView::SelectRows))
-                            (:columns (#_QAbstractItemView::SelectColumns))))
-  (setf (selection-behavior list-widget) behavior))
+  (unless (eql (selection-behavior list-widget) behavior)
+    (#_setSelectionBehavior
+     list-widget
+     (ecase behavior
+       (:items (#_QAbstractItemView::SelectItems))
+       (:rows (#_QAbstractItemView::SelectRows))
+       (:columns (#_QAbstractItemView::SelectColumns))))
+    (setf (selection-behavior list-widget) behavior)))
+
+(defun set-selection-mode (list-widget mode)
+  (#_setSelectionMode list-widget
+                      (ecase mode
+                        (:single (#_QAbstractItemView::SingleSelection))
+                        (:contiguous (#_QAbstractItemView::ContiguousSelection))
+                        (:extended (#_QAbstractItemView::ExtendedSelection))
+                        (:multi (#_QAbstractItemView::MultiSelection))
+                        (:no (#_QAbstractItemView::NoSelection)))))
 
 (defmethod initialize-instance :after ((widget list-widget)
                                        &key editable expandable
                                             header
-                                            (selection-behavior :items))
+                                            (selection-behavior :items)
+                                            (selection-mode :single))
   (connect widget "doubleClicked(QModelIndex)"
            widget "viewItem(QModelIndex)")
   (unless expandable
@@ -116,6 +128,7 @@
   (unless header
     (#_setHeaderHidden widget t))
   (set-selection-behavior widget selection-behavior)
+  (set-selection-mode widget selection-mode)
   (#_setResizeMode (#_header widget) (#_QHeaderView::ResizeToContents))
   (#_setEditTriggers widget (#_QAbstractItemView::NoEditTriggers))
   (#_setContextMenuPolicy widget (#_Qt::CustomContextMenu))
