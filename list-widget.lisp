@@ -82,7 +82,7 @@
 
 (defclass list-widget (view-widget)
   ((selection-behavior :initarg :selection-behavior
-                       :initform :items
+                       :initform nil
                        :accessor selection-behavior))
   (:metaclass qt-class)
   (:qt-superclass "QTreeView")
