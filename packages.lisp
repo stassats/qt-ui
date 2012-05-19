@@ -41,4 +41,5 @@
    :mouse-release-event
    :launch-browser
    :web-link
-   :url))
+   :url
+   :add-horizontal-line))

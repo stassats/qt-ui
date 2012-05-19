@@ -102,5 +102,11 @@
 (defmethod object-description (object &key)
   (princ-to-string object))
 
-;;
+;;;
+
 (defgeneric mouse-release-event (ojbect event))
+
+(defun add-horizontal-line (layout)
+  (let ((frame (#_new QFrame)))
+    (#_setFrameStyle frame (#_QFrame::HLine))
+    (#_addWidget layout frame)))
