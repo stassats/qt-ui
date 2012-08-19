@@ -42,4 +42,7 @@
    :launch-browser
    :web-link
    :url
-   :add-horizontal-line))
+   :add-horizontal-line
+   :refresh
+   :select-index
+   :key-press-event))

@@ -31,7 +31,16 @@
              :initarg :editable)
    (header :initarg :header
            :initform nil
-           :accessor header))
+           :accessor header)
+   (key :initarg :key
+        :initform nil
+        :accessor key)
+   (row-key :initarg :row-key
+            :initform nil
+            :accessor row-key)
+   (description :initarg :description
+                :initform nil
+                :accessor description))
   (:metaclass qt-class)
   (:slots ("listItemChanged(QStandardItem*)" list-widget-item-changed))
   (:qt-superclass "QStandardItemModel"))
@@ -69,7 +78,7 @@
 (defmethod initialize-instance :after ((model list-model)
                                        &key parent
                                             items key row-key editable
-                                            (description #'object-description))
+                                            description)
   (new-instance model parent)
   (when items
     (setf (items model :key key
@@ -95,7 +104,9 @@
   (:override ("dropEvent" drop-event)
              ("startDrag" start-drag)
              ("dragEnterEvent" drag-enter-event)
-             ("dragMoveEvent" drag-move-event)))
+             ("dragMoveEvent" drag-move-event)
+             ("keyPressEvent" key-press-event))
+  (:signals ("returnPressed()")))
 
 (defun set-selection-behavior (list-widget behavior)
   (unless (eql (selection-behavior list-widget) behavior)
@@ -216,29 +227,33 @@
       (%make-item object nil description editable)))
 
 (defmethod list-append ((model list-model) items
-                        &key key row-key (description #'object-description))
+                        &key key row-key description)
   (when items
     (with-signals-blocked (model)
-     (with-slots (editable (current-items items)) model
-       (let ((key (or key #'identity))
-             (row-key (or row-key #'identity))
-             (current-row-number (length current-items)))
-         (setf current-items
-               (append current-items items))
-         (prog1
-             (loop for object in items
-                   for row = (alexandria:ensure-list (funcall row-key object))
-                   for row-number from current-row-number
-                   nconc
-                   (loop for column-number from 0
-                         for object in row
-                         for item = (make-item (funcall key object)
-                                               description editable)
-                         do (#_setItem model row-number column-number
-                                       item)
-                         collect item))
-           (when (header model)
-             (set-header model (header model)))))))))
+      (with-slots (editable (current-items items)) model
+        (let ((key (or key (key model)
+                       #'identity))
+              (row-key (or row-key (row-key model)
+                           #'identity))
+              (description (or description (description model)
+                               #'object-description))
+              (current-row-number (length current-items)))
+          (setf current-items
+                (append current-items items))
+          (prog1
+              (loop for object in items
+                    for row = (alexandria:ensure-list (funcall row-key object))
+                    for row-number from current-row-number
+                    nconc
+                    (loop for column-number from 0
+                          for object in row
+                          for item = (make-item (funcall key object)
+                                                description editable)
+                          do (#_setItem model row-number column-number
+                                        item)
+                          collect item))
+            (when (header model)
+              (set-header model (header model)))))))))
 
 (defmethod remove-item (item (view view-widget))
   (remove-item item (model view)))
@@ -349,7 +364,8 @@
 (defun scroll-to-item (widget item)
   (#_setCurrentIndex widget (#_indexFromItem (model widget) item)))
 
-
+(defun select-index (widget row column)
+  (#_setCurrentIndex widget (#_index (model widget) row column)))
 
 (defun add-item (list-widget)
   (let ((item (car (list-append list-widget '("")))))
@@ -359,6 +375,16 @@
 (defun edit-item (list-widget)
   (let ((item (#_currentIndex list-widget)))
     (#_edit list-widget item)))
+
+(defmethod refresh ((widget list-widget))
+  (setf (items widget) (items widget)))
+
+(defmethod key-press-event ((widget list-widget) event)
+  (let ((key (#_key event)))
+    (when (or (= key (primitive-value (#_Qt::Key_Return)))
+              (= key (primitive-value (#_Qt::Key_Enter))))
+      (emit-signal widget "returnPressed()")))
+  (call-next-qmethod))
 
 ;;;
 
