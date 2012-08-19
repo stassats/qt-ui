@@ -4,4 +4,6 @@
 (defun launch-browser (url)
   #+sbcl(sb-ext:run-program "opera" (list url)
                             :search t
-                            :wait nil))
+                            :wait nil)
+  #+ccl(ccl:run-program "opera" (list url)
+                        :wait nil))
