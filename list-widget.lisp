@@ -226,34 +226,41 @@
         item)
       (%make-item object nil description editable)))
 
+(defun lay-items (model items
+                  &key (start 0) key row-key description)
+  (with-signals-blocked (model)
+    (with-slots (editable (current-items items)) model
+      (let ((key (or key (key model)
+                     #'identity))
+            (row-key (or row-key (row-key model)
+                         #'identity))
+            (description (or description (description model)
+                             #'object-description)))
+        (loop for object in items
+              for row = (alexandria:ensure-list (funcall row-key object))
+              for row-number from start
+              nconc
+              (loop for column-number from 0
+                    for object in row
+                    for item = (make-item (funcall key object)
+                                          description editable)
+                    do (#_setItem model row-number column-number
+                                  item)
+                    collect item))))))
+
 (defmethod list-append ((model list-model) items
                         &key key row-key description)
   (when items
-    (with-signals-blocked (model)
-      (with-slots (editable (current-items items)) model
-        (let ((key (or key (key model)
-                       #'identity))
-              (row-key (or row-key (row-key model)
-                           #'identity))
-              (description (or description (description model)
-                               #'object-description))
-              (current-row-number (length current-items)))
-          (setf current-items
-                (append current-items items))
-          (prog1
-              (loop for object in items
-                    for row = (alexandria:ensure-list (funcall row-key object))
-                    for row-number from current-row-number
-                    nconc
-                    (loop for column-number from 0
-                          for object in row
-                          for item = (make-item (funcall key object)
-                                                description editable)
-                          do (#_setItem model row-number column-number
-                                        item)
-                          collect item))
-            (when (header model)
-              (set-header model (header model)))))))))
+    (prog1
+        (lay-items model items
+                   :start (length (items model))
+                   :key key
+                   :row-key row-key
+                   :description description)
+      (setf (slot-value model 'items)
+            (append (items model) items))
+      (when (header model)
+        (set-header model (header model))))))
 
 (defmethod remove-item (item (view view-widget))
   (remove-item item (model view)))
@@ -377,7 +384,11 @@
     (#_edit list-widget item)))
 
 (defmethod refresh ((widget list-widget))
-  (setf (items widget) (items widget)))
+  (let* ((index (#_currentIndex widget))
+         (row (#_row index))
+         (column (#_column index)))
+    (lay-items (model widget) (items widget))
+    (#_setCurrentIndex widget (#_index (model widget) row column))))
 
 (defmethod key-press-event ((widget list-widget) event)
   (let ((key (#_key event)))
