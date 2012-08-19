@@ -383,12 +383,17 @@
   (let ((item (#_currentIndex list-widget)))
     (#_edit list-widget item)))
 
+(defun current-index (list-widget)
+  (let ((index (#_currentIndex list-widget)))
+    (values (#_row index) (#_column index))))
+
+(defun (setf current-index) (column list-widget row)
+  (#_setCurrentIndex list-widget (#_index (model list-widget) row column)))
+
 (defmethod refresh ((widget list-widget))
-  (let* ((index (#_currentIndex widget))
-         (row (#_row index))
-         (column (#_column index)))
+  (multiple-value-bind (row column) (current-index widget)
     (lay-items (model widget) (items widget))
-    (#_setCurrentIndex widget (#_index (model widget) row column))))
+    (setf (current-index widget row) column)))
 
 (defmethod key-press-event ((widget list-widget) event)
   (let ((key (#_key event)))
