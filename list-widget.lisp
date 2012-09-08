@@ -3,7 +3,10 @@
 
 (defclass view-widget ()
   ((model :initform nil
-          :accessor model))
+          :accessor model)
+   (proxy-model :initarg :proxy-model
+                :initform nil
+                :accessor proxy-model))
   (:metaclass qt-class)
   (:qt-superclass "QWidget"))
 
@@ -16,6 +19,7 @@
   (new-instance widget parent)
   (let ((model (make-instance 'list-model
                               :items items
+                              :parent widget
                               :key key
                               :row-key row-key
                               :description description
@@ -42,12 +46,22 @@
                 :initform nil
                 :accessor description))
   (:metaclass qt-class)
-  (:slots ("listItemChanged(QStandardItem*)" list-widget-item-changed))
-  (:qt-superclass "QStandardItemModel"))
+  (:qt-superclass "QStandardItemModel")
+  (:slots ("listItemChanged(QStandardItem*)" list-widget-item-changed)))
 
-(defgeneric remove-item (item model))
-
-(defgeneric (setf items) (new-items model-or-view &rest args))
+(defmethod initialize-instance :after ((model list-model)
+                                       &key parent
+                                            items key row-key editable
+                                            description)
+  (new-instance model parent)
+  (when items
+    (setf (items model :key key
+                       :row-key row-key
+                       :description description)
+          items))
+  (when editable
+    (connect model "itemChanged(QStandardItem*)"
+             model "listItemChanged(QStandardItem*)")))
 
 (defclass model-item ()
   ((object :initarg :object
@@ -75,24 +89,13 @@
         do
         (#_setHeaderData model i (#_Qt::Horizontal) header)))
 
-(defmethod initialize-instance :after ((model list-model)
-                                       &key parent
-                                            items key row-key editable
-                                            description)
-  (new-instance model parent)
-  (when items
-    (setf (items model :key key
-                       :row-key row-key
-                       :description description)
-          items))
-  (when editable
-    (connect model "itemChanged(QStandardItem*)"
-             model "listItemChanged(QStandardItem*)")))
-
 (defclass list-widget (view-widget)
   ((selection-behavior :initarg :selection-behavior
                        :initform nil
-                       :accessor selection-behavior))
+                       :accessor selection-behavior)
+   (sorting :initarg :sorting
+            :initform nil
+            :accessor sorting))
   (:metaclass qt-class)
   (:qt-superclass "QTreeView")
   (:slots
@@ -101,12 +104,41 @@
    ("editItem()" edit-item)
    ("viewItem(QModelIndex)" list-widget-view-item)
    ("displayMenu(QPoint)" list-widget-display-menu))
-  (:override ("dropEvent" drop-event)
-             ("startDrag" start-drag)
-             ("dragEnterEvent" drag-enter-event)
-             ("dragMoveEvent" drag-move-event)
+  (:override ;; ("dropEvent" drop-event)
+             ;; ("startDrag" start-drag)
+             ;; ("dragEnterEvent" drag-enter-event)
+             ;; ("dragMoveEvent" drag-move-event)
              ("keyPressEvent" key-press-event))
   (:signals ("returnPressed()")))
+
+(defmethod initialize-instance :after ((widget list-widget)
+                                       &key editable expandable
+                                            header
+                                            (selection-behavior :items)
+                                            (selection-mode :single)
+                                            sorting)
+  (connect widget "doubleClicked(QModelIndex)"
+           widget "viewItem(QModelIndex)")
+  (unless expandable
+    (#_setRootIsDecorated widget nil))
+  (unless header
+    (#_setHeaderHidden widget t))
+  (set-selection-behavior widget selection-behavior)
+  (set-selection-mode widget selection-mode)
+  (#_setResizeMode (#_header widget) (#_QHeaderView::ResizeToContents))
+  (#_setEditTriggers widget (#_QAbstractItemView::NoEditTriggers))
+  (#_setContextMenuPolicy widget (#_Qt::CustomContextMenu))
+  (connect widget "customContextMenuRequested(QPoint)"
+           widget "displayMenu(const QPoint &)")
+  (when editable
+    (#_setDefaultDropAction widget (#_Qt::MoveAction))
+    (#_setDragDropMode widget (#_QAbstractItemView::InternalMove)))
+  (when sorting
+    (let ((proxy-model (#_new QSortFilterProxyModel widget)))
+      (setf (proxy-model widget) proxy-model)
+      (#_setSourceModel proxy-model (model widget))
+      (#_setModel widget proxy-model)
+      (#_setSortingEnabled widget t))))
 
 (defun set-selection-behavior (list-widget behavior)
   (unless (eql (selection-behavior list-widget) behavior)
@@ -127,28 +159,6 @@
                         (:multi (#_QAbstractItemView::MultiSelection))
                         (:no (#_QAbstractItemView::NoSelection)))))
 
-(defmethod initialize-instance :after ((widget list-widget)
-                                       &key editable expandable
-                                            header
-                                            (selection-behavior :items)
-                                            (selection-mode :single))
-  (connect widget "doubleClicked(QModelIndex)"
-           widget "viewItem(QModelIndex)")
-  (unless expandable
-    (#_setRootIsDecorated widget nil))
-  (unless header
-    (#_setHeaderHidden widget t))
-  (set-selection-behavior widget selection-behavior)
-  (set-selection-mode widget selection-mode)
-  (#_setResizeMode (#_header widget) (#_QHeaderView::ResizeToContents))
-  (#_setEditTriggers widget (#_QAbstractItemView::NoEditTriggers))
-  (#_setContextMenuPolicy widget (#_Qt::CustomContextMenu))
-  (connect widget "customContextMenuRequested(QPoint)"
-           widget "displayMenu(const QPoint &)")
-  (when editable
-    (#_setDefaultDropAction widget (#_Qt::MoveAction))
-    (#_setDragDropMode widget (#_QAbstractItemView::InternalMove))))
-
 ;;;
 
 (defgeneric view-item (list-widget item)
@@ -165,6 +175,10 @@
 
 (defgeneric display-menu-no-rows (list-widget)
   (:method ((list-widget t))))
+
+(defgeneric remove-item (item model))
+
+(defgeneric (setf items) (new-items model-or-view &rest args))
 
 ;;;
 
@@ -228,25 +242,29 @@
 
 (defun lay-items (model items
                   &key (start 0) key row-key description)
-  (with-signals-blocked (model)
-    (with-slots (editable (current-items items)) model
-      (let ((key (or key (key model)
-                     #'identity))
-            (row-key (or row-key (row-key model)
-                         #'identity))
-            (description (or description (description model)
-                             #'object-description)))
-        (loop for object in items
-              for row = (alexandria:ensure-list (funcall row-key object))
-              for row-number from start
-              nconc
-              (loop for column-number from 0
-                    for object in row
-                    for item = (make-item (funcall key object)
-                                          description editable)
-                    do (#_setItem model row-number column-number
-                                  item)
-                    collect item))))))
+  (with-slots (editable (current-items items)) model
+    (let ((key (or key (key model)
+                   #'identity))
+          (row-key (or row-key (row-key model)
+                       #'identity))
+          (description (or description (description model)
+                           #'object-description))
+          (view (#_parent model) ))
+      (emit-signal model "layoutAboutToBeChanged()")
+      (prog1
+          (with-signals-blocked (model)
+            (loop for object in items
+                  for row = (alexandria:ensure-list (funcall row-key object))
+                  for row-number from start
+                  nconc
+                  (loop for column-number from 0
+                        for object in row
+                        for item = (make-item (funcall key object)
+                                              description editable)
+                        do (#_setItem model row-number column-number
+                                      item)
+                        collect item)))
+        (emit-signal model "layoutChanged()")))))
 
 (defmethod list-append ((model list-model) items
                         &key key row-key description)
@@ -302,9 +320,12 @@
         finally (return object)))
 
 (defun item-from-model-index (model-index widget)
-  (ecase (selection-behavior widget)
-    (:items (access-model-item (items widget) model-index))
-    (:rows (nth (#_row model-index) (items widget)))))
+  (let ((model-index (if (proxy-model widget)
+                         (#_mapToSource (proxy-model widget) model-index)
+                         model-index)))
+    (ecase (selection-behavior widget)
+      (:items (access-model-item (items widget) model-index))
+      (:rows (nth (#_row model-index) (items widget))))))
 
 (defun object-from-item (item)
   (typecase item
