@@ -47,4 +47,5 @@
    :select-index
    :key-press-event
    :current-index
-   :remove-item))
+   :remove-item
+   :proxy-model))
