@@ -249,8 +249,7 @@
           (row-key (or row-key (row-key model)
                        #'identity))
           (description (or description (description model)
-                           #'object-description))
-          (view (#_parent model) ))
+                           #'object-description)))
       (emit-signal model "layoutAboutToBeChanged()")
       (prog1
           (with-signals-blocked (model)
@@ -363,8 +362,15 @@
     (when menu
       (#_exec menu (#_mapToGlobal widget point)))))
 
+(defun selected-indexes (list-widget)
+  (if (proxy-model list-widget)
+      (#_indexes (#_mapSelectionToSource
+                  (proxy-model list-widget)
+                  (#_selection (#_selectionModel list-widget))))
+      (#_selectedIndexes list-widget)))
+
 (defun selected-items (list-widget)
-  (let ((indexes (#_selectedIndexes list-widget)))
+  (let ((indexes (selected-indexes list-widget)))
     (ecase (selection-behavior list-widget)
       (:items
        (loop for index in indexes
@@ -377,12 +383,12 @@
              collect (nth row (items list-widget)))))))
 
 (defun selected-rows (list-widget)
-  (loop for item in (#_selectedIndexes list-widget)
+  (loop for item in (selected-indexes list-widget)
         collect (nth (#_row item)
                      (items list-widget))))
 
 (defun delete-items (list-widget)
-  (loop for item in (nreverse (#_selectedIndexes list-widget))
+  (loop for item in (nreverse (selected-indexes list-widget))
         do (remove-item item list-widget)))
 
 (defun single-selected (list-widget)
