@@ -44,7 +44,6 @@
    :url
    :add-horizontal-line
    :refresh
-   :select-index
    :key-press-event
    :current-index
    :remove-item

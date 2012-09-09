@@ -396,11 +396,15 @@
     (when (= (length items) 1)
       (car items))))
 
+(defun current-index (list-widget)
+  (let ((index (#_currentIndex list-widget)))
+    (values (#_row index) (#_column index))))
+
+(defun (setf current-index) (column list-widget row)
+  (#_setCurrentIndex list-widget (#_index (model list-widget) row column)))
+
 (defun scroll-to-item (widget item)
   (#_setCurrentIndex widget (#_indexFromItem (model widget) item)))
-
-(defun select-index (widget row column)
-  (#_setCurrentIndex widget (#_index (model widget) row column)))
 
 (defun add-item (list-widget)
   (let ((item (car (list-append list-widget '("")))))
@@ -408,15 +412,7 @@
     (edit-item list-widget)))
 
 (defun edit-item (list-widget)
-  (let ((item (#_currentIndex list-widget)))
-    (#_edit list-widget item)))
-
-(defun current-index (list-widget)
-  (let ((index (#_currentIndex list-widget)))
-    (values (#_row index) (#_column index))))
-
-(defun (setf current-index) (column list-widget row)
-  (#_setCurrentIndex list-widget (#_index (model list-widget) row column)))
+  (#_edit list-widget (#_currentIndex list-widget)))
 
 (defmethod refresh ((widget list-widget))
   (multiple-value-bind (row column) (current-index widget)
