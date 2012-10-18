@@ -95,7 +95,10 @@
                        :accessor selection-behavior)
    (sorting :initarg :sorting
             :initform nil
-            :accessor sorting))
+            :accessor sorting)
+   (expandable :initarg :expandable
+               :initform nil
+               :accessor expandable))
   (:metaclass qt-class)
   (:qt-superclass "QTreeView")
   (:slots
@@ -119,8 +122,9 @@
                                             sorting)
   (connect widget "doubleClicked(QModelIndex)"
            widget "viewItem(QModelIndex)")
-  (unless expandable
-    (#_setRootIsDecorated widget nil))
+  (if expandable
+      (set-expanded widget)
+      (#_setRootIsDecorated widget nil))
   (unless header
     (#_setHeaderHidden widget t))
   (set-selection-behavior widget selection-behavior)
@@ -193,7 +197,8 @@
                          &rest args &key &allow-other-keys)
   (apply '(setf items) items
          (model widget) args)
-  (set-expanded widget))
+  (when (expandable widget)
+    (set-expanded widget)))
 
 (defmethod (setf items) (items (model list-model)
                                 &rest args &key &allow-other-keys)
