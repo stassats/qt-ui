@@ -6,7 +6,10 @@
           :accessor model)
    (proxy-model :initarg :proxy-model
                 :initform nil
-                :accessor proxy-model))
+                :accessor proxy-model)
+   (expandable :initarg :expandable
+               :initform nil
+               :accessor expandable))
   (:metaclass qt-class)
   (:qt-superclass "QWidget"))
 
@@ -95,10 +98,7 @@
                        :accessor selection-behavior)
    (sorting :initarg :sorting
             :initform nil
-            :accessor sorting)
-   (expandable :initarg :expandable
-               :initform nil
-               :accessor expandable))
+            :accessor sorting))
   (:metaclass qt-class)
   (:qt-superclass "QTreeView")
   (:slots
