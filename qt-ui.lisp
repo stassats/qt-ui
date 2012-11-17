@@ -78,11 +78,6 @@
       (#_setPointSize (#_font label) size))
     (#_addWidget layout label)))
 
-(defun exec-window (window parent)
-  (if parent
-      (#_show window)
-      (#_exec window)))
-
 (defun add-qaction (toolbar icon text object signal
                     &key key)
   (let ((action

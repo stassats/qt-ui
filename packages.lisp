@@ -20,7 +20,6 @@
    :delete-widgets
    :with-layout
    :output-text
-   :exec-window
    :add-qaction
    :object-description
    :view-item
