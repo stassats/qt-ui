@@ -78,17 +78,21 @@
       (#_setPointSize (#_font label) size))
     (#_addWidget layout label)))
 
-(defun add-qaction (toolbar icon text object signal
-                    &key key)
-  (let ((action
-          (#_addAction toolbar (if (stringp icon)
-                                   (#_fromTheme "QIcon" icon)
-                                   icon)
+(defun add-qaction (widget text receiver signal
+                    &key icon key)
+  (let ((icon (if (stringp icon)
+                  (#_fromTheme "QIcon" icon)
+                  icon))
+        (action
+          (#_addAction widget 
                        text
-                       object
+                       receiver
                        (qsignal signal))))
+    (when icon
+      (#_setIcon action icon))
     (when key
-      (#_setShortcut action key))
+      (#_setShortcut action
+                     (#_new QKeySequence key)))
     action))
 
 (defgeneric object-description (object &key &allow-other-keys)
