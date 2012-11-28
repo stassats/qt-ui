@@ -28,7 +28,6 @@
    :current-item
    :selected-items
    :edit-object 
-   :scroll-to-item
    :list-append
    :selected-rows
    :display-menu

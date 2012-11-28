@@ -98,6 +98,10 @@
 (defgeneric object-description (object &key &allow-other-keys)
   (:documentation "Returns one line string to present an object on screen."))
 
+(defmethod object-description :around (object &key)
+  (let (*print-pretty*)
+    (call-next-method)))
+
 (defmethod object-description (object &key)
   (princ-to-string object))
 

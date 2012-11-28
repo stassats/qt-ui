@@ -256,34 +256,31 @@
           (description (or description (description model)
                            #'object-description)))
       (emit-signal model "layoutAboutToBeChanged()")
-      (prog1
-          (with-signals-blocked (model)
-            (loop for object in items
-                  for row = (alexandria:ensure-list (funcall row-key object))
-                  for row-number from start
-                  nconc
-                  (loop for column-number from 0
-                        for object in row
-                        for item = (make-item (funcall key object)
-                                              description editable)
-                        do (#_setItem model row-number column-number
-                                      item)
-                        collect item)))
-        (emit-signal model "layoutChanged()")))))
+      (with-signals-blocked (model)
+        (loop for object in items
+              for row = (alexandria:ensure-list (funcall row-key object))
+              for row-number from start
+              do
+              (loop for column-number from 0
+                    for object in row
+                    for item = (make-item (funcall key object)
+                                          description editable)
+                    do (#_setItem model row-number column-number
+                                  item))))
+      (emit-signal model "layoutChanged()"))))
 
 (defmethod list-append ((model list-model) items
                         &key key row-key description)
   (when items
-    (prog1
-        (lay-items model items
-                   :start (length (items model))
-                   :key key
-                   :row-key row-key
-                   :description description)
-      (setf (slot-value model 'items)
-            (append (items model) items))
-      (when (header model)
-        (set-header model (header model))))))
+    (lay-items model items
+               :start (length (items model))
+               :key key
+               :row-key row-key
+               :description description)
+    (setf (slot-value model 'items)
+          (append (items model) items))
+    (when (header model)
+      (set-header model (header model)))))
 
 (defmethod remove-item (item (view view-widget))
   (remove-item item (model view)))
@@ -405,15 +402,13 @@
   (let ((index (#_currentIndex list-widget)))
     (values (#_row index) (#_column index))))
 
-(defun (setf current-index) (column list-widget row)
+(defun (setf current-index) (row list-widget &optional (column 0))
   (#_setCurrentIndex list-widget (#_index (model list-widget) row column)))
 
-(defun scroll-to-item (widget item)
-  (#_setCurrentIndex widget (#_indexFromItem (model widget) item)))
-
 (defun add-item (list-widget)
-  (let ((item (car (list-append list-widget '("")))))
-    (scroll-to-item list-widget item)
+  (let ((end (length (items list-widget))))
+    (list-append list-widget '(""))
+    (setf (current-index list-widget) end)
     (edit-item list-widget)))
 
 (defun edit-item (list-widget)
@@ -422,7 +417,7 @@
 (defmethod refresh ((widget list-widget))
   (multiple-value-bind (row column) (current-index widget)
     (lay-items (model widget) (items widget))
-    (setf (current-index widget row) column)))
+    (setf (current-index widget column) row)))
 
 (defmethod key-press-event ((widget list-widget) event)
   (let ((key (#_key event)))
