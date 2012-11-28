@@ -230,12 +230,11 @@
   (loop for object in (children model-item)
         for row = (alexandria:ensure-list object)
         for row-number from 0
-        nconc (loop for column-number from 0
-                    for object in row
-                    for item = (make-item object description editable)
-                    do
-                    (#_setChild parent row-number column-number item)
-                    collect item)))
+        do (loop for column-number from 0
+                 for object in row
+                 for item = (make-item object description editable)
+                 do
+                 (#_setChild parent row-number column-number item))))
 
 (defun make-item (object description editable)
   (if (typep object 'model-item)
