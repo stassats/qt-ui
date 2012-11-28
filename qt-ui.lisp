@@ -103,7 +103,9 @@
     (call-next-method)))
 
 (defmethod object-description (object &key)
-  (princ-to-string object))
+  (if (stringp object)
+      object
+      (princ-to-string object)))
 
 ;;;
 
