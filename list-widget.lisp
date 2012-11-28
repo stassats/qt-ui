@@ -227,14 +227,19 @@
     item))
 
 (defun add-item-children (model-item parent editable description)
-  (loop for object in (children model-item)
-        for row = (alexandria:ensure-list object)
+  (loop for row in (children model-item)
         for row-number from 0
-        do (loop for column-number from 0
-                 for object in row
-                 for item = (make-item object description editable)
-                 do
-                 (#_setChild parent row-number column-number item))))
+        do
+        (if (consp row)
+            (loop for column-number from 0
+                  for object in row
+                  for item = (make-item object description editable)
+                  for x =
+                  (#_setChild parent row-number item)
+                  then
+                  (#_setChild parent row-number column-number item))
+            (#_setChild parent row-number
+                        (make-item row description editable)))))
 
 (defun make-item (object description editable)
   (if (typep object 'model-item)
@@ -256,16 +261,22 @@
                            #'object-description)))
       (emit-signal model "layoutAboutToBeChanged()")
       (with-signals-blocked (model)
-        (loop for object in items
-              for row = (alexandria:ensure-list (funcall row-key object))
+        (loop for x in items
+              for row = (funcall row-key x)
               for row-number from start
               do
-              (loop for column-number from 0
-                    for object in row
-                    for item = (make-item (funcall key object)
-                                          description editable)
-                    do (#_setItem model row-number column-number
-                                  item))))
+              (if (consp row)
+                  (loop for column-number from 0
+                        for object in row
+                        for item = (make-item (funcall key object)
+                                              description editable)
+                        for x =
+                        (#_setItem model row-number item)
+                        then
+                        (#_setItem model row-number column-number item))
+                  (#_setItem model row-number
+                             (make-item (funcall key row)
+                                        description editable)))))
       (emit-signal model "layoutChanged()"))))
 
 (defmethod list-append ((model list-model) items
