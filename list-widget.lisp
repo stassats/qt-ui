@@ -195,7 +195,7 @@
 
 (defmethod (setf items) (items (widget view-widget)
                          &rest args &key &allow-other-keys)
-  (apply '(setf items) items
+  (apply #'(setf items) items
          (model widget) args)
   (when (expandable widget)
     (set-expanded widget)))
@@ -331,13 +331,15 @@
                             (children object))
         finally (return object)))
 
+(defun map-to-source (model-index widget)
+  (if (proxy-model widget)
+      (#_mapToSource (proxy-model widget) model-index)
+      model-index))
+
 (defun item-from-model-index (model-index widget)
-  (let ((model-index (if (proxy-model widget)
-                         (#_mapToSource (proxy-model widget) model-index)
-                         model-index)))
-    (ecase (selection-behavior widget)
-      (:items (access-model-item (items widget) model-index))
-      (:rows (nth (#_row model-index) (items widget))))))
+  (ecase (selection-behavior widget)
+    (:items (access-model-item (items widget) model-index))
+    (:rows (nth (#_row model-index) (items widget)))))
 
 (defun object-from-item (item)
   (typecase item
@@ -348,7 +350,9 @@
        item)))
 
 (defun list-widget-view-item (list-widget item)
-  (let ((object (object-from-item (item-from-model-index item list-widget))))
+  (let ((object (object-from-item (item-from-model-index
+                                   (map-to-source item list-widget)
+                                   list-widget))))
     (when object
       (view-item list-widget object))))
 
@@ -374,25 +378,28 @@
     (when menu
       (#_exec menu (#_mapToGlobal widget point)))))
 
-(defun selected-indexes (list-widget)
+(defun %selected-indexes (list-widget)
   (if (proxy-model list-widget)
       (#_indexes (#_mapSelectionToSource
                   (proxy-model list-widget)
                   (#_selection (#_selectionModel list-widget))))
       (#_selectedIndexes list-widget)))
 
-(defun selected-items (list-widget)
-  (let ((indexes (selected-indexes list-widget)))
+(defun selected-indexes (list-widget)
+  (let ((indexes (%selected-indexes list-widget)))
     (ecase (selection-behavior list-widget)
       (:items
-       (loop for index in indexes
-             collect (object-from-item (item-from-model-index index list-widget))))
+       indexes)
       (:rows
        (loop for index in indexes
              for previous = -1 then row
              for row = (#_row index)
              when (/= previous row)
-             collect (nth row (items list-widget)))))))
+             collect index)))))
+
+(defun selected-items (list-widget)
+  (loop for index in (selected-indexes list-widget)
+        collect (object-from-item (item-from-model-index index list-widget))))
 
 (defun selected-rows (list-widget)
   (loop for item in (selected-indexes list-widget)
@@ -400,7 +407,7 @@
                      (items list-widget))))
 
 (defun delete-items (list-widget)
-  (loop for item in (nreverse (selected-indexes list-widget))
+  (loop for item in (selected-indexes list-widget)
         do (remove-item item list-widget)))
 
 (defun single-selected (list-widget)

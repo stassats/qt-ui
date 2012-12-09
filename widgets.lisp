@@ -18,7 +18,6 @@
   ((object :initarg :object
            :reader current-object))
   (:metaclass qt-class)
-  (:qt-superclass "QLabel")
   (:slots ("viewLink()" %view-link)))
 
 (defmethod initialize-instance :after ((instance link) &key)
