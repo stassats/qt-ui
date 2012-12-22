@@ -8,11 +8,18 @@
   (:override ("mouseReleaseEvent" mouse-release-event))
   (:signals ("clicked()")))
 
+(defmethod mouse-release-event ((clickable-label clickable-label) event)
+  (when (enum= (#_Qt::LeftButton)
+               (#_button event))
+    (emit-signal clickable-label "clicked()")))
+
 (defmethod initialize-instance :after ((instance clickable-label) &key text)
   (if text
       (new instance text)
       (new instance))
   (#_setCursor instance (#_new QCursor (#_Qt::PointingHandCursor))))
+
+;;;
 
 (defclass link (clickable-label)
   ((object :initarg :object
@@ -30,20 +37,24 @@
 (defun %view-link (link)
   (view-link link (current-object link)))
 
-(defmethod mouse-release-event ((clickable-label clickable-label) event)
-  (when (enum= (#_Qt::LeftButton)
-               (#_button event))
-    (emit-signal clickable-label "clicked()")))
+;;;
 
-(defclass web-link (clickable-label)
-  ((url :initarg :url
-        :initform nil
-        :reader url))
+(defclass graphics-link (link)
+  ()
   (:metaclass qt-class)
-  (:qt-superclass "QLabel")
-  (:slots ("viewLink()" (lambda (link)
-                          (launch-browser (url link))))))
+  (:qt-superclass "QGraphicsTextItem")
+  (:override ("mousePressEvent" mouse-press-event)))
 
-(defmethod initialize-instance :after ((instance web-link) &key)
-  (connect instance "clicked()"
-           instance "viewLink()"))
+;;; Needs to override, otherwise no other events will be delivered
+(defmethod mouse-press-event ((link graphics-link) event)
+  (declare (ignore event)))
+
+;;;
+
+(defclass web-link (link)
+  ((object :initarg :url
+           :reader url))
+  (:metaclass qt-class))
+
+(defmethod view-link ((link web-link) url)
+  (launch-browser url))

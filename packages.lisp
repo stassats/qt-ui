@@ -45,4 +45,6 @@
    :key-press-event
    :current-index
    :remove-item
-   :proxy-model))
+   :proxy-model
+   :graphics-link
+   :mouse-press-event))
