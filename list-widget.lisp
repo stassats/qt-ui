@@ -184,6 +184,9 @@
 
 (defgeneric (setf items) (new-items model-or-view &rest args))
 
+(defgeneric current-index (view-widget))
+(defgeneric (setf current-index) (row view-widget &optional column))
+
 ;;;
 
 (defun clear-list-model (model)
@@ -415,11 +418,12 @@
     (when (= (length items) 1)
       (car items))))
 
-(defun current-index (list-widget)
+(defmethod current-index ((list-widget list-widget))
   (let ((index (#_currentIndex list-widget)))
     (values (#_row index) (#_column index))))
 
-(defun (setf current-index) (row list-widget &optional (column 0))
+(defmethod (setf current-index) (row (list-widget list-widget)
+                                 &optional (column 0))
   (#_setCurrentIndex list-widget (#_index (model list-widget) row column)))
 
 (defun add-item (list-widget)
@@ -473,14 +477,26 @@
   (:metaclass qt-class)
   (:qt-superclass "QComboBox"))
 
+(defmethod current-index ((combo-box combo-box))
+  (#_currentIndex combo-box))
+
+(defmethod (setf current-index) (row (combo-box combo-box)
+                                 &optional column)
+  (declare (ignore column))
+  (#_setCurrentIndex combo-box row))
+
 (defmethod initialize-instance :after ((widget combo-box)
-                                       &key items current-item)
-  (#_setCurrentIndex widget (or (position current-item items) 0)))
+                                       &key items (current-item nil current-item-p))
+  (setf (current-index widget)
+        (or (and current-item-p
+                 (position current-item items)) 0)))
 
 (defun current-item (combo-box)
   (let ((index (#_currentIndex combo-box)))
     (unless (minusp index)
       (nth index (items combo-box)))))
+
+;;;
 
 (defun %walk-model (function items)
   (loop for item in items
