@@ -6,5 +6,5 @@
   :components ((:file "packages")
                (:file "qt-ui")
                (:file "launch-browser")
-               (:file "widgets")
+               (:file "links")
                (:file "list-widget")))
