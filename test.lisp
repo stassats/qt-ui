@@ -3,21 +3,15 @@
 
 (defvar *qapp* nil)
 
-(defmacro with-sbcl-float-traps (&body body)
-  `(#+sbcl ,@'(sb-int:with-float-traps-masked (:invalid :divide-by-zero))
-    #-sbcl progn
-    ,@body))
-
 (defun test ()
   (unless *qapp*
     (setf *qapp* (make-qapplication)))
   (let ((window (make-instance 'list-widget-test)))
     (unwind-protect
-         (with-sbcl-float-traps
+         (progn
            (#_show window)
            (#_exec *qapp*))
       (#_hide window))))
-
 
 (defclass list-widget-test ()
   ()
