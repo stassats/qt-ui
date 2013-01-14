@@ -47,7 +47,8 @@
       (connect cancel "clicked()"
                widget "close()")
       (connect ok "clicked()"
-               widget "accept()"))))
+               widget "accept()")
+      (values ok cancel))))
 
 (defun dialog-select-item (text list &key
                                        (description #'object-description)

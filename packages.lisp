@@ -47,4 +47,10 @@
    :remove-item
    :proxy-model
    :graphics-link
-   :mouse-press-event))
+   :mouse-press-event
+   :input-line-dialog
+   :make-shortcut
+   :clipboard
+   :clipboard-selection
+   :add-dialog-buttons
+   :current-tree-index))

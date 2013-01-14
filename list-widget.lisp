@@ -316,6 +316,12 @@
           do (push (cons row (#_column index)) result))
     result))
 
+(defun make-tree-model-index (model path)
+  (loop for (row . column) in path 
+        for index = (#_index model row column)
+        then (#_index model row column index)
+        finally (return index)))
+
 (defun access-row-item (items index)
   (destructuring-bind (row . column) index
    (let ((row (nth row items)))
@@ -417,6 +423,12 @@
   (let ((items (selected-items list-widget)))
     (when (= (length items) 1)
       (car items))))
+
+(defmethod current-tree-index ((list-widget list-widget))
+  (model-index-tree-address (#_currentIndex list-widget)))
+
+(defmethod (setf current-tree-index) (path (list-widget list-widget))
+  (#_setCurrentIndex list-widget (make-tree-model-index (model list-widget) path)))
 
 (defmethod current-index ((list-widget list-widget))
   (let ((index (#_currentIndex list-widget)))
