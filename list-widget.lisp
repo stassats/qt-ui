@@ -142,7 +142,8 @@
       (setf (proxy-model widget) proxy-model)
       (#_setSourceModel proxy-model (model widget))
       (#_setModel widget proxy-model)
-      (#_setSortingEnabled widget t))))
+      (#_setSortingEnabled widget t)
+      (#_setDynamicSortFilter proxy-model t))))
 
 (defun set-selection-behavior (list-widget behavior)
   (unless (eql (selection-behavior list-widget) behavior)
