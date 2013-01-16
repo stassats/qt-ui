@@ -53,4 +53,9 @@
    :clipboard
    :clipboard-selection
    :add-dialog-buttons
-   :current-tree-index))
+   :current-tree-index
+   :move-to-row
+   :move-to-next-row
+   :move-to-previous-row
+   :next-row
+   :previous-row))

@@ -139,6 +139,10 @@
    ("keyPressEvent" key-press-event))
   (:signals ("returnPressed()")))
 
+(defun display-model (widget)
+  (or (proxy-model widget)
+      (model widget)))
+
 (defmethod initialize-instance :after ((widget list-widget)
                                        &key editable expandable
                                             header
@@ -172,12 +176,17 @@
       (#_setSortingEnabled widget t))))
 
 (defun set-selection-behavior (list-widget behavior)
+  (case behavior
+    (:rows
+     (#_setAllColumnsShowFocus list-widget t)))
   (unless (eql (selection-behavior list-widget) behavior)
     (#_setSelectionBehavior
      list-widget
      (ecase behavior
        (:items (#_QAbstractItemView::SelectItems))
-       (:rows (#_QAbstractItemView::SelectRows))
+       (:rows
+        (#_setAllColumnsShowFocus list-widget t)
+        (#_QAbstractItemView::SelectRows))
        (:columns (#_QAbstractItemView::SelectColumns))))
     (setf (selection-behavior list-widget) behavior)))
 
@@ -462,8 +471,25 @@
     (values (#_row index) (#_column index))))
 
 (defmethod (setf current-index) (row (list-widget list-widget)
-                                 &optional (column 0))
-  (#_setCurrentIndex list-widget (#_index (model list-widget) row column)))
+                                  &optional (column 0))
+  (#_setCurrentIndex list-widget
+                     (#_index (display-model list-widget) row column)))
+
+(defun move-to-row (widget index)
+  (#_setCurrentIndex widget index)
+  (#_scrollTo widget index))
+
+(defun previous-row (list-widget)
+  (#_indexAbove list-widget (#_currentIndex list-widget)))
+
+(defun next-row (list-widget)
+  (#_indexBelow list-widget (#_currentIndex list-widget)))
+
+(defun move-to-previous-row (list-widget)
+  (move-to-row list-widget (previous-row list-widget)))
+
+(defun move-to-next-row (list-widget)
+  (move-to-row list-widget (next-row list-widget)))
 
 (defun add-item (list-widget)
   (let ((end (length (items list-widget))))
@@ -550,12 +576,11 @@
   (%walk-model function (items model)))
 
 (defun set-expanded (list-widget)
-  (let ((model (model list-widget)))
+  (let ((display-model (display-model list-widget)))
     (walk-model
      (lambda (item index)
        (when (and (typep item 'model-item)
                   (expanded item))
          (#_expand list-widget
-                   (#_index model (car index) (cdr index)))))
-
-     model)))
+                   (#_index display-model (car index) (cdr index)))))
+     (model list-widget))))
