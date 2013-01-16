@@ -92,6 +92,31 @@
         do
         (#_setHeaderData model i (#_Qt::Horizontal) header)))
 
+(defclass proxy-model ()
+  ((model :initarg :model
+          :initform nil
+          :accessor model)
+   (filter-function :initarg :filter-function
+                    :initform nil
+                    :accessor filter-function))
+  (:metaclass qt-class)
+  (:qt-superclass "QSortFilterProxyModel")
+  (:override ("filterAcceptsRow" filter-accepts-row)))
+
+(defmethod initialize-instance :after ((widget proxy-model) &key parent
+                                                                  model)
+  (new-instance widget parent)
+  (#_setDynamicSortFilter widget t)
+  (#_setSourceModel widget model)
+  (setf (model widget) model))
+
+(defgeneric filter-accepts-row (proxy row parent))
+
+(defmethod filter-accepts-row ((proxy proxy-model) row parent)
+  (and (or (not (filter-function proxy))
+           (funcall (filter-function proxy) (nth row (items (model proxy)))))
+       (call-next-qmethod)))
+
 (defclass list-widget (view-widget)
   ((selection-behavior :initarg :selection-behavior
                        :initform nil
@@ -108,10 +133,10 @@
    ("viewItem(QModelIndex)" list-widget-view-item)
    ("displayMenu(QPoint)" list-widget-display-menu))
   (:override ;; ("dropEvent" drop-event)
-             ;; ("startDrag" start-drag)
-             ;; ("dragEnterEvent" drag-enter-event)
-             ;; ("dragMoveEvent" drag-move-event)
-             ("keyPressEvent" key-press-event))
+   ;; ("startDrag" start-drag)
+   ;; ("dragEnterEvent" drag-enter-event)
+   ;; ("dragMoveEvent" drag-move-event)
+   ("keyPressEvent" key-press-event))
   (:signals ("returnPressed()")))
 
 (defmethod initialize-instance :after ((widget list-widget)
@@ -119,7 +144,8 @@
                                             header
                                             (selection-behavior :items)
                                             (selection-mode :single)
-                                            sorting)
+                                            sorting
+                                            filter-function)
   (connect widget "doubleClicked(QModelIndex)"
            widget "viewItem(QModelIndex)")
   (if expandable
@@ -138,12 +164,12 @@
     (#_setDefaultDropAction widget (#_Qt::MoveAction))
     (#_setDragDropMode widget (#_QAbstractItemView::InternalMove)))
   (when sorting
-    (let ((proxy-model (#_new QSortFilterProxyModel widget)))
-      (setf (proxy-model widget) proxy-model)
-      (#_setSourceModel proxy-model (model widget))
+    (let ((proxy-model (make-instance 'proxy-model
+                                      :model (model widget)
+                                      :filter-function filter-function)))
+      (setf (proxy-model widget) proxy-model)      
       (#_setModel widget proxy-model)
-      (#_setSortingEnabled widget t)
-      (#_setDynamicSortFilter proxy-model t))))
+      (#_setSortingEnabled widget t))))
 
 (defun set-selection-behavior (list-widget behavior)
   (unless (eql (selection-behavior list-widget) behavior)
