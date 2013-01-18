@@ -73,6 +73,9 @@
    (text :initarg :text
          :initform #'object-description
          :accessor text)
+   (tool-tip :initarg :tool-tip
+             :initform nil
+             :accessor tool-tip) 
    (decoration :initarg :decoration
                :initform nil
                :accessor decoration)
@@ -113,9 +116,9 @@
 (defgeneric filter-accepts-row (proxy row parent))
 
 (defmethod filter-accepts-row ((proxy proxy-model) row parent)
-  (and (or (not (filter-function proxy))
-           (funcall (filter-function proxy) (nth row (items (model proxy)))))
-       (call-next-qmethod)))
+  (when (or (not (filter-function proxy))
+            (funcall (filter-function proxy) (nth row (items (model proxy)))))
+    (stop-overriding)))
 
 (defclass list-widget (view-widget)
   ((selection-behavior :initarg :selection-behavior
@@ -250,15 +253,20 @@
                         &rest args &key &allow-other-keys)
   (apply 'list-append (model widget) items args))
 
-(defun %make-item (object decoration description editable)
+(defun %make-item (object description editable
+                   &optional model-item)
   (let ((item (if description
                   (#_new QStandardItem (etypecase description
                                          (function
                                           (funcall description object))
                                          (string description)))
                   (#_new QStandardItem))))
-    (when decoration
-      (#_setData item decoration (#_Qt::DecorationRole)))
+    (when model-item
+      (with-slots (decoration tool-tip) model-item
+        (when decoration
+          (#_setData item decoration (#_Qt::DecorationRole)))
+        (when tool-tip
+          (#_setData item (object-description tool-tip) (#_Qt::ToolTipRole)))))
     (when editable
       (#_setFlags item (logxor (#_flags item)
                                (primitive-value
@@ -282,12 +290,12 @@
 
 (defun make-item (object description editable)
   (if (typep object 'model-item)
-      (let ((item (%make-item (object object) (decoration object)
-                              (text object) editable)))
+      (let ((item (%make-item (object object) (text object) editable
+                              object)))
         (when (children object)
           (add-item-children object item editable description))
         item)
-      (%make-item object nil description editable)))
+      (%make-item object description editable)))
 
 (defun lay-items (model items
                   &key (start 0) key row-key description)
@@ -510,7 +518,7 @@
     (when (or (= key (primitive-value (#_Qt::Key_Return)))
               (= key (primitive-value (#_Qt::Key_Enter))))
       (emit-signal widget "returnPressed()")))
-  (call-next-qmethod))
+  (stop-overriding))
 
 ;;;
 

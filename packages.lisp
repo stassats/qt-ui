@@ -58,4 +58,6 @@
    :move-to-next-row
    :move-to-previous-row
    :next-row
-   :previous-row))
+   :previous-row
+   :text
+   :tool-tip))
