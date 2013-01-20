@@ -60,4 +60,5 @@
    :next-row
    :previous-row
    :text
-   :tool-tip))
+   :tool-tip
+   :file-dialog))
