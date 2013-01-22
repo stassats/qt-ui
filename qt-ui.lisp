@@ -85,10 +85,11 @@
 
 ;;;
 
-(defgeneric mouse-release-event (ojbect event))
 (defgeneric mouse-press-event (object event))
+(defgeneric mouse-release-event (ojbect event))
 
 (defgeneric key-press-event (ojbect event))
+(defgeneric key-release-event (ojbect event))
 
 (defgeneric refresh (widget))
 

@@ -61,4 +61,5 @@
    :previous-row
    :text
    :tool-tip
-   :file-dialog))
+   :file-dialog
+   :key-release-event))
