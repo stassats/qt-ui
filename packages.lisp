@@ -62,4 +62,11 @@
    :text
    :tool-tip
    :file-dialog
-   :key-release-event))
+   :key-release-event
+   :navigable-viewer
+   :toolbar
+   :viewer-page
+   :current-object
+   :refresh-viewer
+   :set-current-object
+   :view-object))
