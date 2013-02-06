@@ -21,8 +21,7 @@
 (defmacro with-layout ((var name &optional parent-layout) &body body)
   `(let ((,var (optimized-new ,name)))
      ,(when parent-layout
-        `(optimized-call t ,parent-layout "addLayout"
-                         ,var))
+        `(#_addLayout ,parent-layout ,var))
      ,@body))
 
 ;;;
