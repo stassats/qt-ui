@@ -49,7 +49,7 @@
 (defun add-qaction (widget text receiver signal
                     &key icon key)
   (let ((icon (if (stringp icon)
-                  (#_fromTheme "QIcon" icon)
+                  (#_QIcon::fromTheme "QIcon")
                   icon))
         (action
           (#_addAction widget 
