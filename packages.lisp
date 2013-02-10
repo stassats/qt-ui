@@ -69,4 +69,10 @@
    :current-object
    :refresh-viewer
    :set-current-object
-   :view-object))
+   :view-object
+   :*qapp*
+   :*main-window*
+   :exec-window
+   :ensure-qapp
+   :executing-window
+   :window))

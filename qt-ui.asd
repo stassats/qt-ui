@@ -9,4 +9,5 @@
                (:file "navigable-viewer")
                (:file "launch-browser")
                (:file "links")
-               (:file "list-widget")))
+               (:file "list-widget")
+               (:file "window")))

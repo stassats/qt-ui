@@ -44,8 +44,7 @@
                                    :description description)))
     (add-widgets vbox label combo-box)
     (add-dialog-buttons dialog vbox :default-ok t)
-
-    (when (plusp (#_exec dialog))
+    (executing-window (result dialog t)
       (current-item combo-box))))
 
 (defun input-line-dialog (&key prompt parent
@@ -64,8 +63,7 @@
     (add-widgets vbox line-edit)
     (add-dialog-buttons dialog vbox :default-ok t)
     (#_addStretch vbox)
-
-    (when (plusp (#_exec dialog))
+    (executing-window (result dialog t)
       (#_text line-edit))))
 
 (defun file-dialog (&key parent
@@ -76,5 +74,5 @@
                     (#_new QFileDialog parent caption directory filter)
                     (#_new QFileDialog (null-qobject "QWidget")
                            parent caption directory filter))))
-    (when (plusp (#_exec dialog))
+    (executing-window (result dialog)
       (#_selectedFiles dialog))))
