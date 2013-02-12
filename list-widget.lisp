@@ -173,6 +173,7 @@
   (when sorting
     (let ((proxy-model (make-instance 'proxy-model
                                       :model (model widget)
+                                      :parent widget
                                       :filter-function filter-function)))
       (setf (proxy-model widget) proxy-model)      
       (#_setModel widget proxy-model)
