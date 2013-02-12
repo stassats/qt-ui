@@ -59,8 +59,8 @@
     (when icon
       (#_setIcon action icon))
     (when key
-      (#_setShortcut action
-                     (#_new QKeySequence key)))
+      (with-objects ((key (#_new QKeySequence key)))
+        (#_setShortcut action key)))
     action))
 
 (defgeneric object-description (object &key &allow-other-keys)
@@ -106,17 +106,18 @@
      (#_Qt::WidgetWithChildrenShortcut))))
 
 (defun make-shortcut (parent keys slot &key (context :window))
-  (if (eq context :window)
-      (#_new QShortcut
-             (#_new QKeySequence keys)
-             parent
-             (qslot slot))
-      (#_new QShortcut
-             (#_new QKeySequence keys)
-             parent
-             (qslot slot)
-             (cffi:null-pointer)
-             (shortcut-context-enum context))))
+  (with-objects ((key (#_new QKeySequence keys)))
+    (if (eq context :window)
+        (#_new QShortcut
+               key
+               parent
+               (qslot slot))
+        (#_new QShortcut
+               key
+               parent
+               (qslot slot)
+               (cffi:null-pointer)
+               (shortcut-context-enum context)))))
 
 (defun clipboard-selection ()
   (#_text (#_QApplication::clipboard) (#_QClipboard::Selection)))

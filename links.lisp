@@ -14,10 +14,9 @@
     (emit-signal clickable-label "clicked()")))
 
 (defmethod initialize-instance :after ((instance clickable-label) &key text)
-  (if text
-      (new instance text)
-      (new instance))
-  (#_setCursor instance (#_new QCursor (#_Qt::PointingHandCursor))))
+  (new-instance instance text)
+  (with-objects ((cursor (#_new QCursor (#_Qt::PointingHandCursor))))
+    (#_setCursor instance cursor)))
 
 ;;;
 

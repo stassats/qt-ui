@@ -127,11 +127,14 @@
                      (#_addAction menu action)
                      finally (when (and shortcuts first-action)
                                (#_setShortcuts first-action shortcuts)))))
-        (add-actions back-menu back-history
-                     (list (#_new QKeySequence :|int| (#_Qt::Key_Backspace))
-                           (#_new QKeySequence (#_QKeySequence::Back))))
-        (add-actions forward-menu forward-history
-                     (list (#_new QKeySequence (#_QKeySequence::Forward))))))))
+        
+        (with-objects ((backspace (#_new QKeySequence :|int| (#_Qt::Key_Backspace)))
+                       (back (#_new QKeySequence (#_QKeySequence::Back)))
+                       (forward (#_new QKeySequence (#_QKeySequence::Forward))))
+            (add-actions back-menu back-history
+                         (list backspace back))
+         (add-actions forward-menu forward-history
+                      (list forward)))))))
 
 (defun adjust-buttons (window)
   (with-slots (back-history forward-history
