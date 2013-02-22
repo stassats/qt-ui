@@ -75,4 +75,5 @@
    :exec-window
    :ensure-qapp
    :executing-window
-   :window))
+   :window
+   :viewer-object-changed))

@@ -50,6 +50,9 @@
   (#_currentWidget (stack viewer)))
 
 (defgeneric view-object (viewer object layout))
+(defgeneric viewer-object-changed (viewer object))
+
+(defmethod viewer-object-changed (viewer object))
 
 (defun refresh-viewer (viewer)
   (let* ((viewer (current-viewer viewer))
@@ -96,8 +99,11 @@
     (connect back "clicked()" window "back()")
     (connect forward "clicked()" window "forward()")
 
-    (#_addLayout layout stack)
-    (set-current-object window object)))
+    (#_addLayout layout stack)))
+
+(defmethod initialize-instance :around ((window navigable-viewer) &key object)
+  (call-next-method)
+  (set-current-object window object))
 
 (defun set-current-object (window object)
   (let ((viewer-page (make-instance (page-class window)
@@ -173,7 +179,8 @@
               (setf forward-history nil)
               direction))))
       (#_setCurrentWidget stack next)
-      (#_setWindowTitle window (object-description (current-object next))))
+      (#_setWindowTitle window (object-description (current-object next)))
+      (viewer-object-changed window (current-object next)))
     (adjust-buttons window)))
 
 (defun back (window)
