@@ -60,7 +60,7 @@
     (delete-widgets layout)
     (view-object viewer (current-object viewer) layout)))
 
-(defmethod initialize-instance :after ((window navigable-viewer) &key parent object)
+(defmethod initialize-instance :after ((window navigable-viewer) &key parent)
   (new-instance window parent)
   (let ((layout (#_new QVBoxLayout))
         (stack (#_new QStackedLayout))
