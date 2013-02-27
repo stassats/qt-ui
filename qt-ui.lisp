@@ -84,16 +84,28 @@
 
 ;;;
 
-(defgeneric mouse-press-event (object event))
-(defgeneric mouse-release-event (ojbect event))
+(defgeneric mouse-press-event (widget event))
+(defgeneric mouse-release-event (widget event))
 
-(defgeneric key-press-event (ojbect event))
-(defgeneric key-release-event (ojbect event))
+(defgeneric key-press-event (widget event))
+(defgeneric key-release-event (widget event))
 
 (defgeneric refresh (widget))
 
 ;;;
 
+(defgeneric context-menu-event (widget event))
+(defgeneric context-menu (widget))
+
+(defmethod context-menu (widget)
+  nil)
+
+(defmethod context-menu-event (widget event)
+  (let ((menu (context-menu widget)))
+    (when menu
+      (#_exec menu (#_globalPos event)))))
+
+;;; 
 (defun shortcut-context-enum (context)
   (ecase context
     (:widget

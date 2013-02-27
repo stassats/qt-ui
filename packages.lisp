@@ -76,4 +76,6 @@
    :ensure-qapp
    :executing-window
    :window
-   :viewer-object-changed))
+   :viewer-object-changed
+   :context-menu-event
+   :context-menu))

@@ -2,7 +2,7 @@
 
 (defsystem qt-ui
   :serial t
-  :depends-on (qt)
+  :depends-on (qt drakma)
   :components ((:file "packages")
                (:file "qt-ui")
                (:file "window")

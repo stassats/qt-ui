@@ -5,7 +5,8 @@
   ()
   (:metaclass qt-class)
   (:qt-superclass "QLabel")
-  (:override ("mouseReleaseEvent" mouse-release-event))
+  (:override ("mouseReleaseEvent" mouse-release-event)
+             ("contextMenuEvent" context-menu-event))
   (:signals ("clicked()")))
 
 (defmethod mouse-release-event ((clickable-label clickable-label) event)
@@ -22,7 +23,7 @@
 
 (defclass link (clickable-label)
   ((object :initarg :object
-           :reader current-object))
+           :reader object))
   (:metaclass qt-class)
   (:slots ("viewLink()" %view-link)))
 
