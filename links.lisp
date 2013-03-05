@@ -35,7 +35,7 @@
   (:method ((link t) (object t))))
 
 (defun %view-link (link)
-  (view-link link (current-object link)))
+  (view-link link (object link)))
 
 ;;;
 
