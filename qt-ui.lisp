@@ -13,10 +13,14 @@
          (#_addLayout layout widget)
          (#_addWidget layout widget)))))
 
-(defun new-instance (instance &rest args)
-  (if (notany #'null args)
-      (apply #'new instance args)
-      (new instance)))
+(defmacro new-instance (instance &rest args)
+  (if args
+      (let ((first-arg (gensym "FIRST")))
+        `(let ((,first-arg ,(car args)))
+           (if ,first-arg
+               (new ,instance ,first-arg ,@(cdr args))
+               (new ,instance))))
+      `(new ,instance)))
 
 (defmacro with-layout ((var name &optional parent-layout) &body body)
   `(let ((,var (optimized-new ,name)))

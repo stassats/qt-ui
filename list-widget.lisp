@@ -18,7 +18,9 @@
                                             items key row-key
                                             (description #'object-description)
                                             editable
-                                            header)
+                                            header
+                                            sort-keys
+                                            sort-tests)
   (new-instance widget parent)
   (let ((model (make-instance 'list-model
                               :items items
@@ -27,7 +29,9 @@
                               :row-key row-key
                               :description description
                               :editable editable
-                              :header header)))
+                              :header header
+                              :sort-keys sort-keys
+                              :sort-tests sort-tests)))
     (setf (model widget) model)
     (#_setModel widget model)))
 
@@ -47,10 +51,17 @@
             :accessor row-key)
    (description :initarg :description
                 :initform nil
-                :accessor description))
+                :accessor description)
+   (sort-tests :initarg :sort-tests
+               :initform nil
+               :accessor sort-tests)
+   (sort-keys :initarg :sort-keys
+              :initform nil
+              :accessor sort-keys))
   (:metaclass qt-class)
   (:qt-superclass "QStandardItemModel")
-  (:slots ("listItemChanged(QStandardItem*)" list-widget-item-changed)))
+  (:slots ("listItemChanged(QStandardItem*)" list-widget-item-changed))
+  (:override ("sort" sort-model)))
 
 (defmethod initialize-instance :after ((model list-model)
                                        &key parent
@@ -152,7 +163,9 @@
                                             (selection-behavior :items)
                                             (selection-mode :single)
                                             sorting
-                                            filter-function)
+                                            sort-keys
+                                            filter-function
+                                            default-sort-column)
   (connect widget "doubleClicked(QModelIndex)"
            widget "viewItem(QModelIndex)")
   (if expandable
@@ -170,14 +183,33 @@
   (when editable
     (#_setDefaultDropAction widget (#_Qt::MoveAction))
     (#_setDragDropMode widget (#_QAbstractItemView::InternalMove)))
-  (when sorting
-    (let ((proxy-model (make-instance 'proxy-model
-                                      :model (model widget)
-                                      :parent widget
-                                      :filter-function filter-function)))
-      (setf (proxy-model widget) proxy-model)      
-      (#_setModel widget proxy-model)
-      (#_setSortingEnabled widget t))))
+  (when default-sort-column
+    (destructuring-bind (column . order) default-sort-column
+      (#_setSortIndicator (#_header widget) column
+                          (ecase order
+                            (:ascending (#_Qt::AscendingOrder))
+                            (:descending (#_Qt::DescendingOrder))))))
+  (cond (sort-keys
+         (#_setSortingEnabled widget t))
+        (sorting
+         (let ((proxy-model (make-instance 'proxy-model
+                                           :model (model widget)
+                                           :parent widget
+                                           :filter-function filter-function)))
+           (setf (proxy-model widget) proxy-model)      
+           (#_setModel widget proxy-model)
+           (#_setSortingEnabled widget t)))))
+
+(defun sort-model (model column order)
+  (let* ((key (or (nth column (sort-keys model))
+                  #'identity))
+         (test (nth column (sort-tests model)))
+         (test (if (enum= order (#_Qt::AscendingOrder))
+                   (complement test)
+                   test)))
+    (setf (items model)
+          (sort (copy-list (items model))
+                test :key key))))
 
 (defun set-selection-behavior (list-widget behavior)
   (case behavior
