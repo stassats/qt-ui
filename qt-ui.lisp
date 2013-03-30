@@ -90,9 +90,13 @@
 
 (defgeneric mouse-press-event (widget event))
 (defgeneric mouse-release-event (widget event))
+(defgeneric mouse-enter-event (widget event))
+(defgeneric mouse-leave-event (widget event))
 
 (defgeneric key-press-event (widget event))
 (defgeneric key-release-event (widget event))
+
+(defgeneric paint-event (widget event))
 
 (defgeneric refresh (widget))
 
