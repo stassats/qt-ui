@@ -18,8 +18,9 @@
   (new-instance widget text)
   (with-objects ((cursor (#_new QCursor (#_Qt::PointingHandCursor))))
     (#_setCursor widget cursor))
-  (#_setSizePolicy widget (#_QSizePolicy::Maximum) (#_QSizePolicy::Maximum))
-  (#_setMargin widget 2))
+  (unless (typep widget 'graphics-link)
+    (#_setSizePolicy widget (#_QSizePolicy::Maximum) (#_QSizePolicy::Maximum))
+    (#_setMargin widget 2)))
 
 (defmethod mouse-release-event ((clickable-label clickable-label) event)
   (when (enum= (#_Qt::LeftButton)
