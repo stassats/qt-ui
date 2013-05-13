@@ -74,5 +74,5 @@
                     (#_new QFileDialog parent caption directory filter)
                     (#_new QFileDialog (null-qobject "QWidget")
                            parent caption directory filter))))
-    (executing-window (result dialog)
+    (executing-window (result dialog t)
       (#_selectedFiles dialog))))
