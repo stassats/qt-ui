@@ -155,29 +155,29 @@
                back-history forward-history)
       window
     (let* ((current (#_currentWidget stack))
-          (next
-           (case direction
-             (:back
-              (push current forward-history)
-              (let ((backs (subseq back-history n)))
-                (psetf back-history (cdr backs)
-                       forward-history (append
-                                        (reverse (subseq back-history 0 n))
-                                        forward-history))
-                (car backs)))
-             (:forward
-              (push current back-history)
-              (let ((forths (subseq forward-history n)))
-                (psetf forward-history (cdr forths)
-                       back-history (append (reverse
-                                             (subseq forward-history 0 n))
-                                            back-history))
-                (car forths)))
-             (t
-              (unless (eql current direction)
-                (push current back-history))
-              (setf forward-history nil)
-              direction))))
+           (next
+             (case direction
+               (:back
+                (push current forward-history)
+                (let ((backs (subseq back-history n)))
+                  (psetf back-history (cdr backs)
+                         forward-history (append
+                                          (reverse (subseq back-history 0 n))
+                                          forward-history))
+                  (car backs)))
+               (:forward
+                (push current back-history)
+                (let ((forths (subseq forward-history n)))
+                  (psetf forward-history (cdr forths)
+                         back-history (append (reverse
+                                               (subseq forward-history 0 n))
+                                              back-history))
+                  (car forths)))
+               (t
+                (unless (eql current direction)
+                  (push current back-history))
+                (setf forward-history nil)
+                direction))))
       (#_setCurrentWidget stack next)
       (#_setWindowTitle window (object-description (current-object next)))
       (viewer-object-changed window (current-object next)))
