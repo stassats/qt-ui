@@ -18,8 +18,8 @@
 
 (defun launch-browser (url &rest parameters &key &allow-other-keys)
   (let ((url (make-url url parameters)))
-    #+sbcl(sb-ext:run-program "opera" (list url)
+    #+sbcl(sb-ext:run-program "browser" (list url)
                               :search t
                               :wait nil)
-    #+ccl(ccl:run-program "opera" (list url)
+    #+ccl(ccl:run-program "browser" (list url)
                           :wait nil)))
