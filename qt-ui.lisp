@@ -96,6 +96,9 @@
 (defgeneric key-press-event (widget event))
 (defgeneric key-release-event (widget event))
 
+(defgeneric focus-in-event (widget event))
+(defgeneric focus-out-event (widget event))
+
 (defgeneric paint-event (widget event))
 
 (defgeneric refresh (widget))

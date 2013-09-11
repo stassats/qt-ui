@@ -6,8 +6,6 @@
 (in-package #:qt-ui)
 (named-readtables:in-readtable :qt)
 
-(defvar *qapp* nil)
-
 (defvar *main-window* nil)
 
 (defclass window ()
@@ -16,18 +14,13 @@
   (:qt-superclass "QWidget"))
 
 (defmethod initialize-instance :before ((window window) &key)
-  (ensure-qapp))
+  (#_QIcon::setThemeName "oxygen"))
 
 (defmethod initialize-instance :after ((window window) &key parent
                                                             title)
   (new-instance window parent)
   (when title
     (#_setWindowTitle window title)))
-
-(defun ensure-qapp ()
-  (unless *qapp*
-    (setf *qapp* (make-qapplication))
-    (#_QIcon::setThemeName "oxygen")))
 
 (defgeneric exec-window (window &key modal delete-on-close))
 

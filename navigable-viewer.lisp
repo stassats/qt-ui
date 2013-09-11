@@ -74,7 +74,7 @@
 
     (#_setLayout window layout)
     (add-widgets layout toolbar)
-    (add-widgets toolbar back forward )
+    (add-widgets toolbar back forward)
     (add-qaction toolbar "Refresh"
                  window "refresh()"
                  :icon "view-refresh"

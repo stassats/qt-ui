@@ -70,12 +70,12 @@
    :refresh-viewer
    :set-current-object
    :view-object
-   :*qapp*
    :*main-window*
    :exec-window
-   :ensure-qapp
    :executing-window
    :window
    :viewer-object-changed
    :context-menu-event
-   :context-menu))
+   :context-menu
+   :focus-in-event
+   :focus-out-event))

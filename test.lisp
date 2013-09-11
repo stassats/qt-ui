@@ -1,17 +1,9 @@
 (in-package :qt-ui)
 (named-readtables:in-readtable :qt)
 
-(defvar *qapp* nil)
-
 (defun test ()
-  (unless *qapp*
-    (setf *qapp* (make-qapplication)))
-  (let ((window (make-instance 'list-widget-test)))
-    (unwind-protect
-         (progn
-           (#_show window)
-           (#_exec *qapp*))
-      (#_hide window))))
+  (with-main-window
+      (window (make-instance 'list-widget-test))))
 
 (defclass list-widget-test ()
   ()
