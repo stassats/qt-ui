@@ -14,6 +14,7 @@
   (:qt-superclass "QWidget"))
 
 (defmethod initialize-instance :before ((window window) &key)
+  (make-qapplication)
   (#_QIcon::setThemeName "oxygen"))
 
 (defmethod initialize-instance :after ((window window) &key parent
