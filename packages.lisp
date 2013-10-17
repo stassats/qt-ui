@@ -78,4 +78,6 @@
    :context-menu-event
    :context-menu
    :focus-in-event
-   :focus-out-event))
+   :focus-out-event
+   :map-from-source
+   :map-to-source))

@@ -422,6 +422,11 @@
       (#_mapToSource (proxy-model widget) model-index)
       model-index))
 
+(defun map-from-source (model-index widget)
+  (if (proxy-model widget)
+      (#_mapFromSource (proxy-model widget) model-index)
+      model-index))
+
 (defun item-from-model-index (model-index widget)
   (ecase (selection-behavior widget)
     (:items (access-model-item (items widget) model-index))
