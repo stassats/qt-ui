@@ -521,6 +521,17 @@
   (#_setCurrentIndex list-widget
                      (#_index (display-model list-widget) row column)))
 
+(defun select-item (item widget &key (test #'eql)
+                                     key)
+  (let ((position (position item (items widget)
+                            :test test :key key)))
+    (when position
+      (setf (current-index widget)
+            (#_row
+             (map-from-source
+              (#_index (model widget) position 0)
+              widget))))))
+
 (defun move-to-row (widget index)
   (#_setCurrentIndex widget index)
   (#_scrollTo widget index))

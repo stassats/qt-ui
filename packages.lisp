@@ -80,4 +80,5 @@
    :focus-in-event
    :focus-out-event
    :map-from-source
-   :map-to-source))
+   :map-to-source
+   :select-item))
