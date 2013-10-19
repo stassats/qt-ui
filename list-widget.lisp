@@ -330,6 +330,35 @@
         item)
       (%make-item object description editable)))
 
+(defun update-row (widget row-number &key key row-key description)
+  (let* ((model (model widget))
+         (key (or key (key model)
+                  #'identity))
+         (row-key (or row-key (row-key model)
+                      #'identity))
+         (description (or description (description model)
+                          #'object-description)))
+    (let ((row (nth row-number (items model))))
+      (when row
+        (emit-signal model "layoutAboutToBeChanged()")
+        (with-signals-blocked (model)
+          (set-row model (funcall row-key row) row-number key description))
+        (emit-signal model "layoutChanged()")))))
+
+(defun set-row (model row row-number key description)
+  (with-slots (editable) model
+    (if (consp row)
+        (loop for column-number from 0
+              for object in row
+              for item = (make-item (funcall key object)
+                                    description editable)
+              for x =
+              (#_setItem model row-number item)
+              then
+              (#_setItem model row-number column-number item))
+        (#_setItem model row-number
+                   (make-item (funcall key row)
+                              description editable)))))
 (defun lay-items (model items
                   &key (start 0) key row-key description)
   (with-slots (editable (current-items items)) model
@@ -344,19 +373,7 @@
         (loop for x in items
               for row = (funcall row-key x)
               for row-number from start
-              do
-              (if (consp row)
-                  (loop for column-number from 0
-                        for object in row
-                        for item = (make-item (funcall key object)
-                                              description editable)
-                        for x =
-                        (#_setItem model row-number item)
-                        then
-                        (#_setItem model row-number column-number item))
-                  (#_setItem model row-number
-                             (make-item (funcall key row)
-                                        description editable)))))
+              do (set-row model row row-number key description)))
       (emit-signal model "layoutChanged()"))))
 
 (defmethod list-append ((model list-model) items

@@ -81,4 +81,5 @@
    :focus-out-event
    :map-from-source
    :map-to-source
-   :select-item))
+   :select-item
+   :update-row))
