@@ -513,7 +513,7 @@
   (#_setCurrentIndex list-widget (make-tree-model-index (model list-widget) path)))
 
 (defmethod current-index ((list-widget list-widget))
-  (let ((index (#_currentIndex list-widget)))
+  (let ((index (map-to-source (#_currentIndex list-widget) list-widget)))
     (values (#_row index) (#_column index))))
 
 (defmethod (setf current-index) (row (list-widget list-widget)
