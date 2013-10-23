@@ -82,4 +82,5 @@
    :map-from-source
    :map-to-source
    :select-item
-   :update-row))
+   :update-row
+   :delete-items))
