@@ -14,7 +14,7 @@
   (:qt-superclass "QWidget"))
 
 #+win32
-(defvar *icon-path* (list (merge-pathnames "icons/" (user-homedir-pathname))))
+(defvar *icon-path* (list (namestring (merge-pathnames "icons/" (user-homedir-pathname)))))
 
 (defmethod initialize-instance :before ((window window) &key)
   (make-qapplication)
