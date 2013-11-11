@@ -13,8 +13,12 @@
   (:metaclass qt-class)
   (:qt-superclass "QWidget"))
 
+#+win32
+(defvar *icon-path* (list (merge-pathnames "icons/" (user-homedir-pathname))))
+
 (defmethod initialize-instance :before ((window window) &key)
   (make-qapplication)
+  #+win32 (#_QIcon::setThemeSearchPaths *icon-path*)
   (#_QIcon::setThemeName "oxygen"))
 
 (defmethod initialize-instance :after ((window window) &key parent
