@@ -83,4 +83,5 @@
    :map-to-source
    :select-item
    :update-row
-   :delete-items))
+   :delete-items
+   :run-program))

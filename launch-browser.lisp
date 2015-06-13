@@ -16,10 +16,12 @@
           (write-char #\= str)
           (write-string (drakma:url-encode value :utf-8) str))))
 
+(defun run-program (program &rest args)
+  #+sbcl(sb-ext:run-program program args
+                            :search t
+                            :wait nil)
+  #+ccl(ccl:run-program program args
+                        :wait nil))
+
 (defun launch-browser (url &rest parameters &key &allow-other-keys)
-  (let ((url (make-url url parameters)))
-    #+sbcl(sb-ext:run-program "browser" (list url)
-                              :search t
-                              :wait nil)
-    #+ccl(ccl:run-program "browser" (list url)
-                          :wait nil)))
+  (run-program "browser" (make-url url parameters)))
