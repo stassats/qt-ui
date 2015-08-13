@@ -84,4 +84,5 @@
    :select-item
    :update-row
    :delete-items
-   :run-program))
+   :run-program
+   :notification-badge))

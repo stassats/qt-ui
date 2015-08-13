@@ -451,11 +451,12 @@
 
 (defun object-from-item (item)
   (typecase item
-      (model-item
-       (when (viewable item)
-         (object item)))
-      (t
-       item)))
+    (model-item
+     (if (viewable item)
+         (object item)
+         item))
+    (t
+     item)))
 
 (defun list-widget-view-item (list-widget item)
   (let ((object (object-from-item (item-from-model-index

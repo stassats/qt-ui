@@ -1,5 +1,3 @@
-;;; -*- Mode: Lisp -*-
-
 ;;; This software is in the public domain and is
 ;;; provided with absolutely no warranty.
 
