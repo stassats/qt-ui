@@ -5,7 +5,9 @@
 (named-readtables:in-readtable :qt)
 
 (defclass notification-badge ()
-  ()
+  ((text :initarg :text
+         :initform nil
+         :accessor text))
   (:metaclass qt-class)
   (:qt-superclass "QLabel"))
 
@@ -18,3 +20,7 @@
   (#_setAutoFillBackground widget t)
   (#_setStyleSheet widget
                    "font: bold; color: white; background-color: red; border-radius: 5px; padding: 0px 3px 0px 3px;"))
+
+(defmethod (setf text) :after (value (widget notification-badge))
+  (#_setText widget (princ-to-string value))
+  (#_adjustSize widget))
