@@ -528,7 +528,9 @@
   (model-index-tree-address (#_currentIndex list-widget)))
 
 (defmethod (setf current-tree-index) (path (list-widget list-widget))
-  (#_setCurrentIndex list-widget (make-tree-model-index (model list-widget) path)))
+  (let ((index (make-tree-model-index (model list-widget) path)))
+    (#_scrollTo list-widget index)
+    (#_setCurrentIndex list-widget index)))
 
 (defmethod current-index ((list-widget list-widget))
   (let ((index (map-to-source (#_currentIndex list-widget) list-widget)))
