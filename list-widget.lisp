@@ -165,9 +165,12 @@
                                             sorting
                                             sort-keys
                                             filter-function
-                                            default-sort-column)
+                                            default-sort-column
+                                            (uniform-heights t))
   (connect widget "doubleClicked(QModelIndex)"
            widget "viewItem(QModelIndex)")
+  (when uniform-heights
+    (#_setUniformRowHeights widget t))
   (if expandable
       (set-expanded widget)
       (#_setRootIsDecorated widget nil))
