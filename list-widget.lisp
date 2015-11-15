@@ -110,25 +110,44 @@
   ((model :initarg :model
           :initform nil
           :accessor model)
+   (parent :initarg :parent
+           :initform nil
+           :accessor parent) 
    (filter-function :initarg :filter-function
                     :initform nil
-                    :accessor filter-function))
+                    :accessor filter-function)
+   (filter-column :initarg :filter-column
+                  :initform 0
+                  :accessor filter-column))
   (:metaclass qt-class)
   (:qt-superclass "QSortFilterProxyModel")
   (:override ("filterAcceptsRow" filter-accepts-row)))
 
 (defmethod initialize-instance :after ((widget proxy-model) &key parent
-                                                                  model)
+                                                                 model
+                                                                 (filter-column 0)
+                                                                 filter-case-sensitive)
   (new-instance widget parent)
   (#_setDynamicSortFilter widget t)
   (#_setSourceModel widget model)
+  (when (and (integerp filter-column)
+             (not (zerop filter-column)))
+    (#_setFilterKeyColumn widget filter-column))
+  (unless filter-case-sensitive
+    (#_setFilterCaseSensitivity widget
+                                (#_Qt::CaseInsensitive)))
   (setf (model widget) model))
 
 (defgeneric filter-accepts-row (proxy row parent))
 
-(defmethod filter-accepts-row ((proxy proxy-model) row parent)
+(defmethod filter-accepts-row ((proxy proxy-model) row parent-index)
   (when (or (not (filter-function proxy))
-            (funcall (filter-function proxy) (nth row (items (model proxy)))))
+            (let ((address (append (model-index-tree-address parent-index)
+                                   (list (cons row (filter-column proxy))))))
+              (funcall (filter-function proxy)
+                       (access-tree-model-item (items (model proxy))
+                                               address)
+                       (parent proxy))))
     (stop-overriding)))
 
 (defclass list-widget (view-widget)
@@ -165,6 +184,8 @@
                                             sorting
                                             sort-keys
                                             filter-function
+                                            filter-column
+                                            filter-case-sensitive
                                             default-sort-column
                                             (uniform-heights t))
   (connect widget "doubleClicked(QModelIndex)"
@@ -194,14 +215,18 @@
                             (:descending (#_Qt::DescendingOrder))))))
   (cond (sort-keys
          (#_setSortingEnabled widget t))
-        (sorting
+        ((or sorting filter-function
+             filter-column)
          (let ((proxy-model (make-instance 'proxy-model
                                            :model (model widget)
                                            :parent widget
-                                           :filter-function filter-function)))
+                                           :filter-function filter-function
+                                           :filter-column (or filter-column 0)
+                                           :filter-case-sensitive filter-case-sensitive)))
            (setf (proxy-model widget) proxy-model)      
            (#_setModel widget proxy-model)
-           (#_setSortingEnabled widget t)))))
+           (when sorting
+             (#_setSortingEnabled widget t))))))
 
 (defun sort-model (model column order)
   (let* ((key (or (nth column (sort-keys model))
@@ -429,13 +454,16 @@
            (t
             (error "Wrong column"))))))
 
-(defun access-model-item (items model-index)
-  (loop for index in (model-index-tree-address model-index)
+(defun access-tree-model-item (items address)
+  (loop for index in address
         for object = (access-row-item items index)
         then (access-row-item children index)
         for children = (and (typep object 'model-item)
                             (children object))
         finally (return object)))
+
+(defun access-model-item (items model-index)
+  (access-tree-model-item items (model-index-tree-address model-index)))
 
 (defun map-to-source (model-index widget)
   (if (proxy-model widget)
@@ -531,7 +559,8 @@
   (model-index-tree-address (#_currentIndex list-widget)))
 
 (defmethod (setf current-tree-index) (path (list-widget list-widget))
-  (let ((index (make-tree-model-index (model list-widget) path)))
+  (let ((index (make-tree-model-index (or (proxy-model list-widget)
+                                          (model list-widget)) path)))
     (#_scrollTo list-widget index)
     (#_setCurrentIndex list-widget index)))
 
