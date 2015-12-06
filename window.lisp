@@ -33,10 +33,13 @@
                                     (delete-on-close t))
   (when delete-on-close
     (#_setAttribute window (#_Qt::WA_DeleteOnClose)))
-  (if (or modal
-          (not *main-window*))
-      (#_exec window)
-      (#_show window)))
+  (cond ((not *main-window*)
+         (#_exec window))
+        (modal
+         (#_setWindowModality window (#_Qt::WindowModal))
+         (#_exec window))
+        (t
+         (#_show window))))
 
 (defmacro executing-window ((result window &optional modal)
                             &body body)

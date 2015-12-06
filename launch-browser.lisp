@@ -24,4 +24,6 @@
                         :wait nil))
 
 (defun launch-browser (url &rest parameters &key &allow-other-keys)
-  (run-program "browser" (make-url url parameters)))
+  (run-program #+darwin "open"
+               #-darwin "browser"
+               (make-url url parameters)))
