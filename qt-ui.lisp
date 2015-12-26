@@ -49,12 +49,12 @@
     (#_addWidget layout label)))
 
 (defun add-qaction (widget text receiver signal
-                    &key icon key)
+                    &key icon key (enabled t))
   (let ((icon (if (stringp icon)
                   (#_QIcon::fromTheme icon)
                   icon))
         (action
-          (#_addAction widget 
+          (#_addAction widget
                        text
                        receiver
                        (qsignal signal))))
@@ -63,6 +63,8 @@
     (when key
       (with-objects ((key (#_new QKeySequence key)))
         (#_setShortcut action key)))
+    (unless enabled
+      (#_setEnabled action nil))
     action))
 
 (defgeneric object-description (object &key &allow-other-keys)
@@ -114,7 +116,7 @@
     (when menu
       (#_exec menu (#_globalPos event)))))
 
-;;; 
+;;;
 (defun shortcut-context-enum (context)
   (ecase context
     (:widget
