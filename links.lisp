@@ -39,8 +39,7 @@
   (cond ((hovered widget)
          (call-next-qmethod)
          (with-objects ((painter (#_new QPainter widget)))
-
-           (with-objects ((rect (#_adjusted (#_rect event) 1 1 -1 -1)))
+           (with-objects ((rect (#_adjusted (#_rect widget) 1 1 -1 -1)))
              (#_drawRoundedRect painter rect 2 2))))
         (t
          (stop-overriding))))
