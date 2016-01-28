@@ -195,11 +195,11 @@
   (if expandable
       (set-expanded widget)
       (#_setRootIsDecorated widget nil))
-  (unless header
-    (#_setHeaderHidden widget t))
+  (if header
+      (#_setStretchLastSection (#_header widget) nil)
+      (#_setHeaderHidden widget t))
   (set-selection-behavior widget selection-behavior)
   (set-selection-mode widget selection-mode)
-  (#_setResizeMode (#_header widget) (#_QHeaderView::ResizeToContents))
   (#_setEditTriggers widget (#_QAbstractItemView::NoEditTriggers))
   (#_setContextMenuPolicy widget (#_Qt::CustomContextMenu))
   (connect widget "customContextMenuRequested(QPoint)"
