@@ -20,7 +20,8 @@
   #+sbcl(sb-ext:run-program program args
                             :search t
                             :wait nil)
-  #+ccl(ccl:run-program program args
+  #+ccl(ccl:run-program program (loop for arg in args
+                                      collect (coerce arg 'simple-string))
                         :wait nil))
 
 (defun launch-browser (url &rest parameters &key &allow-other-keys)
